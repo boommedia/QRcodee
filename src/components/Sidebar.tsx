@@ -28,15 +28,10 @@ const NAV: NavGroup[] = [
     ],
   },
   {
-    section: 'BULK OPTIONS',
+    section: 'TOOLS',
     items: [
-      { label: 'Bulk QR Codes', href: '/dashboard/bulk', icon: BulkIcon, badge: 'Pro' },
-    ],
-  },
-  {
-    section: 'EXPORTS',
-    items: [
-      { label: 'Downloads', href: '/dashboard/downloads', icon: DownloadIcon },
+      { label: 'Bulk Create', href: '/dashboard/bulk', icon: BulkIcon, badge: 'Pro' },
+      { label: 'Migrate In', href: '/dashboard/migrate', icon: MigrateIcon },
     ],
   },
   {
@@ -205,10 +200,10 @@ function BulkIcon({ className }: { className?: string }) {
   )
 }
 
-function DownloadIcon({ className }: { className?: string }) {
+function MigrateIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
     </svg>
   )
 }
