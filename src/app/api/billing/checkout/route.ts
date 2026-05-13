@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe, STRIPE_PRICES } from '@/lib/stripe/client'
+import { getStripe, STRIPE_PRICES } from '@/lib/stripe/client'
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qrcodee.online'
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     mode: 'subscription',
     customer: sub?.stripe_customer_id || undefined,
     customer_email: sub?.stripe_customer_id ? undefined : user.email!,

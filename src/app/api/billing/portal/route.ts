@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe/client'
+import { getStripe } from '@/lib/stripe/client'
 
 export async function POST() {
   const supabase = await createClient()
@@ -19,7 +19,7 @@ export async function POST() {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qrcodee.online'
 
-  const session = await stripe.billingPortal.sessions.create({
+  const session = await getStripe().billingPortal.sessions.create({
     customer: sub.stripe_customer_id,
     return_url: `${appUrl}/billing`,
   })
