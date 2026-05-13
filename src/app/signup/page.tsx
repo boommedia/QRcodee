@@ -5,6 +5,13 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
+const PERKS = [
+  { icon: '🆓', text: '3 QR codes free forever — no card required' },
+  { icon: '⚡', text: 'Dynamic codes — change URLs without reprinting' },
+  { icon: '📊', text: 'Scan analytics from day one' },
+  { icon: '🚀', text: 'Up and running in under 2 minutes' },
+]
+
 export default function SignupPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -27,12 +34,8 @@ export default function SignupPage() {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     })
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-    } else {
-      setDone(true)
-    }
+    if (error) { setError(error.message); setLoading(false) }
+    else { setDone(true) }
   }
 
   async function handleGoogle() {
@@ -43,110 +46,166 @@ export default function SignupPage() {
     })
   }
 
-  if (done) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--bg)] px-4">
-        <div className="max-w-sm text-center">
-          <div className="mb-4 text-4xl">📬</div>
-          <h1 className="text-xl font-bold text-[var(--text)] mb-2">Check your email</h1>
-          <p className="text-sm text-[var(--muted2)]">
-            We sent a confirmation link to <strong className="text-[var(--text)]">{email}</strong>.
-            Click it to activate your account.
+  return (
+    <div className="min-h-screen flex bg-[var(--bg)]">
+      {/* Left panel — branding */}
+      <div className="hidden lg:flex lg:w-[45%] flex-col justify-between p-12 border-r border-[var(--border)] bg-[var(--surface)] relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-96 h-96 rounded-full blur-3xl opacity-10" style={{ background: 'var(--qr)', transform: 'translate(-30%, -30%)' }} />
+        <div className="absolute bottom-0 right-0 w-72 h-72 rounded-full blur-3xl opacity-10" style={{ background: 'var(--qr-hover)', transform: 'translate(30%, 30%)' }} />
+
+        <div className="relative">
+          <Link href="/" className="flex items-center gap-2.5 mb-12">
+            <div className="w-9 h-9 rounded-xl bg-[var(--qr)] flex items-center justify-center shadow-lg shadow-[var(--qr)]/30">
+              <span className="text-white text-sm font-bold">QR</span>
+            </div>
+            <span className="font-bold text-lg text-[var(--text)]">QRcodee</span>
+          </Link>
+
+          <h2 className="text-2xl font-bold text-[var(--text)] mb-3">Start for free.</h2>
+          <p className="text-[var(--muted2)] text-sm mb-10 leading-relaxed">
+            No credit card. No expiry. Create your first 3 QR codes in minutes.
           </p>
+
+          <div className="space-y-4">
+            {PERKS.map(p => (
+              <div key={p.text} className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-base" style={{ background: 'var(--qr)18' }}>
+                  {p.icon}
+                </div>
+                <span className="text-sm text-[var(--muted2)]">{p.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="relative">
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-5 mb-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style={{ background: 'var(--qr)22', color: 'var(--qr)' }}>R</div>
+              <div>
+                <p className="text-xs font-semibold text-[var(--text)]">Restaurant owner</p>
+                <p className="text-[10px] text-[var(--muted2)]">Free plan · 3 QR codes</p>
+              </div>
+            </div>
+            <p className="text-sm text-[var(--text)]">&quot;Replaced our paper menu QRs. Customers scan the same code, but we update specials every week.&quot;</p>
+          </div>
+          <div className="flex items-center gap-4 text-xs text-[var(--muted2)]">
+            <span>✓ GDPR compliant</span>
+            <span>✓ Data never sold</span>
+            <span>✓ Cancel anytime</span>
+          </div>
         </div>
       </div>
-    )
-  }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--bg)] px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-[var(--text)]">Create your account</h1>
-          <p className="mt-1 text-sm text-[var(--muted2)]">Free forever. No credit card required.</p>
-        </div>
+      {/* Right panel — form */}
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm">
+          {/* Mobile logo */}
+          <div className="lg:hidden mb-8 text-center">
+            <Link href="/" className="inline-flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-[var(--qr)] flex items-center justify-center">
+                <span className="text-white text-xs font-bold">QR</span>
+              </div>
+              <span className="font-bold text-[var(--text)]">QRcodee</span>
+            </Link>
+          </div>
 
-        <form onSubmit={handleSignup} className="space-y-4">
-          {error && (
-            <div className="rounded-lg bg-red-900/20 border border-red-700/40 px-4 py-3 text-sm text-red-400">
-              {error}
+          {done ? (
+            <div className="text-center">
+              <div className="text-5xl mb-4">📬</div>
+              <h1 className="text-xl font-bold text-[var(--text)] mb-2">Check your email</h1>
+              <p className="text-sm text-[var(--muted2)] leading-relaxed">
+                We sent a confirmation link to{' '}
+                <strong className="text-[var(--text)]">{email}</strong>.
+                <br />Click it to activate your account and get started.
+              </p>
+              <p className="text-xs text-[var(--muted2)] mt-4">Didn&apos;t get it? Check spam, or <button onClick={() => setDone(false)} className="text-[var(--qr)] hover:text-[var(--qr-hover)]">try again</button>.</p>
             </div>
+          ) : (
+            <>
+              <div className="mb-8">
+                <h1 className="text-2xl font-bold text-[var(--text)]">Create your account</h1>
+                <p className="mt-1 text-sm text-[var(--muted2)]">Free forever. No credit card required.</p>
+              </div>
+
+              <form onSubmit={handleSignup} className="space-y-4">
+                {error && (
+                  <div className="rounded-xl bg-red-900/20 border border-red-700/40 px-4 py-3 text-sm text-red-400">{error}</div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-semibold text-[var(--muted2)] uppercase tracking-wide mb-1.5">Full Name</label>
+                  <input
+                    type="text" required value={name} onChange={e => setName(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--qr)] focus:ring-1 focus:ring-[var(--qr)]/40"
+                    placeholder="Jane Smith"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[var(--muted2)] uppercase tracking-wide mb-1.5">Email</label>
+                  <input
+                    type="email" required value={email} onChange={e => setEmail(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--qr)] focus:ring-1 focus:ring-[var(--qr)]/40"
+                    placeholder="you@example.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[var(--muted2)] uppercase tracking-wide mb-1.5">Password</label>
+                  <input
+                    type="password" required minLength={8} value={password} onChange={e => setPassword(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--qr)] focus:ring-1 focus:ring-[var(--qr)]/40"
+                    placeholder="Min. 8 characters"
+                  />
+                </div>
+
+                <button
+                  type="submit" disabled={loading}
+                  className="w-full rounded-xl bg-[var(--qr)] hover:bg-[var(--qr-dim)] disabled:opacity-60 text-white text-sm font-bold py-3 transition-colors shadow-lg shadow-[var(--qr)]/20"
+                >
+                  {loading ? 'Creating account…' : 'Create Free Account'}
+                </button>
+
+                <p className="text-center text-[10px] text-[var(--muted2)]">
+                  By signing up you agree to our{' '}
+                  <a href="mailto:hello@qrcodee.online" className="text-[var(--qr)]">Terms</a>
+                  {' '}and{' '}
+                  <a href="mailto:hello@qrcodee.online" className="text-[var(--qr)]">Privacy Policy</a>.
+                </p>
+              </form>
+
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-[var(--border)]" />
+                </div>
+                <div className="relative flex justify-center text-xs text-[var(--muted2)]">
+                  <span className="bg-[var(--bg)] px-3">or continue with</span>
+                </div>
+              </div>
+
+              <button
+                onClick={handleGoogle}
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface2)] text-sm text-[var(--text)] font-medium py-3 transition-colors flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                Continue with Google
+              </button>
+
+              <p className="mt-6 text-center text-sm text-[var(--muted2)]">
+                Already have an account?{' '}
+                <Link href="/login" className="text-[var(--qr)] hover:text-[var(--qr-hover)] font-semibold">
+                  Sign in
+                </Link>
+              </p>
+            </>
           )}
-
-          <div>
-            <label className="block text-sm text-[var(--muted2)] mb-1.5">Full Name</label>
-            <input
-              type="text"
-              required
-              value={name}
-              onChange={e => setName(e.target.value)}
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--qr)] focus:ring-1 focus:ring-[var(--qr)]"
-              placeholder="Jane Smith"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-[var(--muted2)] mb-1.5">Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--qr)] focus:ring-1 focus:ring-[var(--qr)]"
-              placeholder="you@example.com"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-[var(--muted2)] mb-1.5">Password</label>
-            <input
-              type="password"
-              required
-              minLength={8}
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--qr)] focus:ring-1 focus:ring-[var(--qr)]"
-              placeholder="Min. 8 characters"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-[var(--qr)] hover:bg-[var(--qr-dim)] disabled:opacity-60 text-white text-sm font-medium py-2.5 transition-colors"
-          >
-            {loading ? 'Creating account…' : 'Create Account'}
-          </button>
-        </form>
-
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-[var(--border)]" />
-          </div>
-          <div className="relative flex justify-center text-xs text-[var(--muted2)]">
-            <span className="bg-[var(--bg)] px-3">or continue with</span>
-          </div>
         </div>
-
-        <button
-          onClick={handleGoogle}
-          className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface2)] text-sm text-[var(--text)] font-medium py-2.5 transition-colors flex items-center justify-center gap-2"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-          Google
-        </button>
-
-        <p className="mt-6 text-center text-sm text-[var(--muted2)]">
-          Already have an account?{' '}
-          <Link href="/login" className="text-[var(--qr)] hover:text-[var(--qr-hover)]">
-            Sign in
-          </Link>
-        </p>
       </div>
     </div>
   )
