@@ -55,7 +55,8 @@ export async function GET(request: NextRequest) {
   })
 
   // ── Aggregate breakdowns ─────────────────────────────────
-  function tally(field: keyof typeof scans[0]) {
+  type ScanRow = { id: string; scanned_at: string; country: string | null; device: string | null; os: string | null; browser: string | null; qr_id: string }
+  function tally(field: keyof ScanRow) {
     const counts: Record<string, number> = {}
     scans!.forEach(s => {
       const val = (s[field] as string) || 'Unknown'
