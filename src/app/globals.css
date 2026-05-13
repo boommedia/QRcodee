@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+/* ── BOOM B.A.A.R.S — QRcodee theme (Emerald Teal) ── */
+@theme {
+  --color-qr-teal:       #0891b2;
+  --color-qr-teal-light: #22d3ee;
+  --color-qr-teal-dark:  #0e7490;
+  --color-qr-amber:      #f59e0b;
+  --color-qr-success:    #4ADE80;
+  --color-qr-danger:     #FF6B6B;
+  --color-qr-info:       #38bdf8;
+  --color-qr-bg:         #060d12;
+  --color-qr-surface:    #0a1520;
+  --color-qr-surface-2:  #0f1e2c;
+  --color-qr-surface-3:  #152535;
+  --color-qr-border:     #152a3a;
+  --color-qr-border-2:   #1e3d52;
+  --color-qr-text:       #e0f2f8;
+  --color-qr-muted:      #2d6070;
+  --color-qr-muted-2:    #4d8090;
+}
+
+:root {
+  --qr-teal:        #0891b2;
+  --qr-teal-light:  #22d3ee;
+  --qr-teal-dark:   #0e7490;
+  --qr-amber:       #f59e0b;
+  --qr-success:     #4ADE80;
+  --qr-danger:      #FF6B6B;
+  --qr-info:        #38bdf8;
+  --qr-bg:          #060d12;
+  --qr-surface:     #0a1520;
+  --qr-surface-2:   #0f1e2c;
+  --qr-surface-3:   #152535;
+  --qr-border:      #152a3a;
+  --qr-border-2:    #1e3d52;
+  --qr-text:        #e0f2f8;
+  --qr-muted:       #2d6070;
+  --qr-muted-2:     #4d8090;
+  --qr-teal-glow:   rgba(8,145,178,0.15);
+  --qr-teal-border: rgba(8,145,178,0.30);
+  --qr-amber-glow:  rgba(245,158,11,0.15);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--qr-bg);
+  color: var(--qr-text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--qr-surface); }
+::-webkit-scrollbar-thumb { background: var(--qr-border-2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--qr-muted); }
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--qr-teal);
+  outline-offset: 2px;
+}

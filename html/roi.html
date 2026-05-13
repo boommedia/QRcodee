@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QRcodee — ROI Analysis</title>
+<style>
+  :root {
+    --qr: #0891b2; --qr-hover: #22d3ee; --qr-dim: #0e7490;
+    --bg: #060d12; --surface: #0a1520; --surface2: #0f1e2c;
+    --border: #152a3a; --border2: #1e3d52;
+    --text: #e0f2f8; --muted: #2d6070; --muted2: #4d8090;
+    --success: #4ADE80; --warn: #f59e0b; --info: #38bdf8;
+    --starter: #34D399; --pro: #0891b2; --agency: #f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; font-size: 13px; min-height: 100vh; }
+
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo span { color: var(--qr); }
+  .header-meta { color: var(--muted); font-size: 11px; }
+
+  .wrapper { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+  .page-title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .page-sub { color: var(--muted2); font-size: 12px; margin-bottom: 28px; }
+  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 12px; }
+
+  .roi-hero { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+  .roi-hero-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; }
+  .roi-hero-card.highlight { background: rgba(8,145,178,0.06); border-color: rgba(8,145,178,0.3); }
+  .roi-hero-card .big { font-size: 32px; font-weight: 900; letter-spacing: -1px; line-height: 1; }
+  .roi-hero-card .lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-top: 8px; }
+  .roi-hero-card .sub { font-size: 11px; color: var(--muted2); margin-top: 4px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .card-title { font-size: 13px; font-weight: 700; margin-bottom: 14px; }
+
+  .cost-table { width: 100%; border-collapse: collapse; }
+  .cost-table th { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); padding: 6px 0; text-align: left; border-bottom: 1px solid var(--border); }
+  .cost-table th:last-child { text-align: right; }
+  .cost-table td { padding: 8px 0; border-bottom: 1px solid rgba(31,27,48,0.5); font-size: 12px; vertical-align: top; }
+  .cost-table td:last-child { text-align: right; font-weight: 700; }
+  .cost-table .sub-row td { font-size: 11px; color: var(--muted2); padding-left: 12px; }
+  .cost-table .total-row td { border-top: 2px solid var(--border2); border-bottom: none; font-weight: 800; padding-top: 10px; }
+  .cost-table .total-row td:last-child { color: var(--success); font-size: 14px; }
+  .saved { color: var(--success); }
+  .cost { color: #FF6B6B; }
+
+  .payback-row { display: flex; gap: 6px; margin-bottom: 6px; }
+  .payback-month { width: 42px; font-size: 9px; color: var(--muted); flex-shrink: 0; padding-top: 2px; }
+  .payback-bar { flex: 1; height: 18px; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; font-size: 10px; font-weight: 700; }
+  .payback-bar.negative { background: rgba(255,107,107,0.15); border: 1px solid rgba(255,107,107,0.25); color: #FF6B6B; }
+  .payback-bar.positive { background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.25); color: var(--success); }
+  .payback-bar.breakeven { background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.25); color: var(--warn); }
+
+  .personas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
+  .persona { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .persona-header { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .persona-name { font-size: 13px; font-weight: 700; }
+  .persona-type { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .persona-body { padding: 14px 16px; }
+  .persona-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 11px; }
+  .persona-row label { color: var(--muted2); }
+  .persona-row .val { font-weight: 700; }
+  .persona-divider { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+  .persona-roi { font-size: 24px; font-weight: 900; }
+  .persona-roi-label { font-size: 10px; color: var(--muted); }
+  .persona.starter .persona-header { border-top: 3px solid var(--starter); }
+  .persona.pro .persona-header { border-top: 3px solid var(--pro); }
+  .persona.agency .persona-header { border-top: 3px solid var(--agency); }
+
+  .drivers { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 28px; }
+  .driver { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; gap: 14px; }
+  .driver-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .driver-body {}
+  .driver-title { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .driver-desc { font-size: 11px; color: var(--muted2); line-height: 1.5; }
+  .driver-val { font-size: 14px; font-weight: 800; margin-top: 6px; }
+
+  .churn-table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 28px; }
+  .churn-table { width: 100%; border-collapse: collapse; }
+  .churn-table th { padding: 10px 14px; text-align: center; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); background: var(--surface2); }
+  .churn-table th:first-child { text-align: left; }
+  .churn-table td { padding: 9px 14px; border-top: 1px solid var(--border); font-size: 12px; text-align: center; }
+  .churn-table td:first-child { text-align: left; font-weight: 600; }
+  .churn-table tr:hover td { background: rgba(8,145,178,0.03); }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+  .badge.green { background: rgba(74,222,128,0.12); color: var(--success); border: 1px solid rgba(74,222,128,0.25); }
+  .badge.red { background: rgba(255,107,107,0.12); color: #FF6B6B; border: 1px solid rgba(255,107,107,0.25); }
+  .badge.yellow { background: rgba(251,191,36,0.12); color: var(--warn); border: 1px solid rgba(251,191,36,0.25); }
+  .badge.purple { background: rgba(8,145,178,0.12); color: var(--qr); border: 1px solid rgba(8,145,178,0.25); }
+
+  .vs-table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 28px; }
+  .vs-table { width: 100%; border-collapse: collapse; }
+  .vs-table th { padding: 10px 14px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); background: var(--surface2); text-align: left; }
+  .vs-table th.center { text-align: center; }
+  .vs-table td { padding: 9px 14px; border-top: 1px solid var(--border); font-size: 12px; }
+  .vs-table td.center { text-align: center; }
+  .vs-table tr:hover td { background: rgba(8,145,178,0.03); }
+  .check { color: var(--success); font-weight: 700; }
+  .cross { color: #FF6B6B; }
+  .partial { color: var(--warn); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">QRcode<span>e</span></div>
+  <div class="header-meta">ROI Analysis — Customer Value & Platform Economics &nbsp;·&nbsp; May 2026</div>
+</div>
+
+<div class="wrapper">
+  <div class="page-title">Return on Investment Analysis</div>
+  <div class="page-sub">Two-sided ROI: what business clients gain vs. QRcodee's unit economics. Covers offline-to-online conversion, campaign tracking, and operational savings.</div>
+
+  <!-- Hero numbers -->
+  <div class="section-label">Client-Side ROI (Average Small Business — Starter Plan)</div>
+  <div class="roi-hero">
+    <div class="roi-hero-card highlight">
+      <div class="big" style="color:var(--success)">1,240%</div>
+      <div class="lbl">First-Year ROI</div>
+      <div class="sub">vs. $19/mo Starter plan</div>
+    </div>
+    <div class="roi-hero-card">
+      <div class="big" style="color:var(--warn)">$2,580</div>
+      <div class="lbl">Annual Value Delivered</div>
+      <div class="sub">Campaigns + print savings + tracking</div>
+    </div>
+    <div class="roi-hero-card">
+      <div class="big" style="color:var(--info)">3 Weeks</div>
+      <div class="lbl">Payback Period</div>
+      <div class="sub">First dynamic QR campaign pays back fast</div>
+    </div>
+    <div class="roi-hero-card">
+      <div class="big" style="color:var(--starter)">$0</div>
+      <div class="lbl">Reprint Cost on Change</div>
+      <div class="sub">Dynamic QRs update without reprinting</div>
+    </div>
+  </div>
+
+  <!-- Detailed breakdown -->
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Value Delivered to Business (Annual, Starter)</div>
+      <table class="cost-table">
+        <thead>
+          <tr><th>Value Category</th><th>Basis</th><th>$/Year</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Reprint cost elimination</strong></td><td style="color:var(--muted);font-size:11px">Avg 6 reprints/yr × $60 design+print</td><td class="saved">$360</td></tr>
+          <tr class="sub-row"><td>Dynamic QR = same physical code, destination changes instantly</td><td></td><td></td></tr>
+          <tr><td><strong>Campaign tracking ROI</strong></td><td style="color:var(--muted);font-size:11px">Attribute offline conversions to ads/flyers</td><td class="saved">$1,200</td></tr>
+          <tr class="sub-row"><td>Know which flyer/campaign drove customers — stop guessing</td><td></td><td></td></tr>
+          <tr><td><strong>Marketing agency savings</strong></td><td style="color:var(--muted);font-size:11px">DIY vs. $150/hr agency for QR campaigns</td><td class="saved">$600</td></tr>
+          <tr class="sub-row"><td>Create, deploy, and track QR campaigns without agency dependency</td><td></td><td></td></tr>
+          <tr><td><strong>Customer experience lift</strong></td><td style="color:var(--muted);font-size:11px">Est. +3% conversion from scannable CTAs</td><td class="saved">$420</td></tr>
+          <tr class="sub-row"><td>Menus, tables, packaging, events — every touchpoint is trackable</td><td></td><td></td></tr>
+          <tr><td><strong>Gross value delivered</strong></td><td></td><td class="saved" style="font-size:14px">$2,580</td></tr>
+          <tr><td style="color:var(--muted2)">Minus: QRcodee Starter cost</td><td style="color:var(--muted);font-size:11px">$19 × 12 mo</td><td class="cost">−$228</td></tr>
+          <tr class="total-row"><td>Net ROI value</td><td></td><td>$2,352</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Payback Period — Week by Week</div>
+      <div style="margin-bottom:10px; font-size:11px; color:var(--muted2)">Starter plan $19/mo. Break-even once cumulative value exceeds subscription cost.</div>
+      <div class="payback-row"><div class="payback-month">Week 1</div><div class="payback-bar negative" style="width:10%">−$4.75 (setup)</div></div>
+      <div class="payback-row"><div class="payback-month">Week 2</div><div class="payback-bar breakeven" style="width:35%">First QR live — menus, table tents</div></div>
+      <div class="payback-row"><div class="payback-month">Week 3</div><div class="payback-bar positive" style="width:52%">+$22 net (reprint avoided)</div></div>
+      <div class="payback-row"><div class="payback-month">Week 4</div><div class="payback-bar positive" style="width:62%">Break-even &amp; positive</div></div>
+      <div class="payback-row"><div class="payback-month">Month 2</div><div class="payback-bar positive" style="width:70%">+$120 cumulative</div></div>
+      <div class="payback-row"><div class="payback-month">Month 3</div><div class="payback-bar positive" style="width:77%">+$318 cumulative</div></div>
+      <div class="payback-row"><div class="payback-month">Month 6</div><div class="payback-bar positive" style="width:86%">+$1,062 cumulative</div></div>
+      <div class="payback-row"><div class="payback-month">Month 12</div><div class="payback-bar positive" style="width:96%">+$2,352 net annual value</div></div>
+      <div style="margin-top:14px; padding:10px; background:rgba(74,222,128,0.08); border:1px solid rgba(74,222,128,0.2); border-radius:8px; font-size:11px; color:var(--success);">
+        ✓ Full payback in <strong>~3 weeks</strong>. Every subsequent month is pure ROI.
+      </div>
+    </div>
+  </div>
+
+  <!-- ROI by persona -->
+  <div class="section-label">ROI by Customer Persona</div>
+  <div class="personas">
+    <div class="persona starter">
+      <div class="persona-header">
+        <div class="persona-name">The Local Business Owner</div>
+        <div class="persona-type">Starter $19/mo · Restaurant, retail, salon</div>
+      </div>
+      <div class="persona-body">
+        <div class="persona-row"><label>Annual subscription cost</label><div class="val cost">$228</div></div>
+        <div class="persona-row"><label>Reprints eliminated / yr</label><div class="val saved">6 reprints</div></div>
+        <div class="persona-row"><label>Print cost savings</label><div class="val saved">$360/yr</div></div>
+        <div class="persona-row"><label>Campaign attribution gained</label><div class="val saved">$1,200/yr</div></div>
+        <div class="persona-row"><label>Design agency saved</label><div class="val saved">$600/yr</div></div>
+        <hr class="persona-divider">
+        <div class="persona-roi-label">First-Year ROI</div>
+        <div class="persona-roi" style="color:var(--success)">+960%</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px;">($2,160 value ÷ $228 cost) − 1</div>
+      </div>
+    </div>
+    <div class="persona pro">
+      <div class="persona-header">
+        <div class="persona-name">The Marketing Manager</div>
+        <div class="persona-type">Pro $49/mo · Multi-campaign, analytics-first</div>
+      </div>
+      <div class="persona-body">
+        <div class="persona-row"><label>Annual subscription cost</label><div class="val cost">$588</div></div>
+        <div class="persona-row"><label>Campaigns tracked / mo</label><div class="val saved">12+ campaigns</div></div>
+        <div class="persona-row"><label>Attribution value</label><div class="val saved">$4,800/yr</div></div>
+        <div class="persona-row"><label>Print/reprint savings</label><div class="val saved">$1,440/yr</div></div>
+        <div class="persona-row"><label>Reporting time saved</label><div class="val saved">8 hrs/mo × $40/hr</div></div>
+        <hr class="persona-divider">
+        <div class="persona-roi-label">First-Year ROI</div>
+        <div class="persona-roi" style="color:var(--success)">+1,280%</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px;">($8,064 value ÷ $588 cost) − 1</div>
+      </div>
+    </div>
+    <div class="persona agency">
+      <div class="persona-header">
+        <div class="persona-name">The Digital Agency</div>
+        <div class="persona-type">Agency $149/mo · 20–50 client campaigns</div>
+      </div>
+      <div class="persona-body">
+        <div class="persona-row"><label>Annual subscription cost</label><div class="val cost">$1,788</div></div>
+        <div class="persona-row"><label>Clients managed</label><div class="val saved">20–50 clients</div></div>
+        <div class="persona-row"><label>White-label resell revenue</label><div class="val saved">$1,500/mo</div></div>
+        <div class="persona-row"><label>Annual resell revenue</label><div class="val saved">$18,000/yr</div></div>
+        <div class="persona-row"><label>Billable hours freed</label><div class="val saved">40 hrs/mo × $75/hr</div></div>
+        <hr class="persona-divider">
+        <div class="persona-roi-label">First-Year ROI</div>
+        <div class="persona-roi" style="color:var(--warn)">+2,114%</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px;">($39,600 value ÷ $1,788 cost) − 1</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Value drivers -->
+  <div class="section-label">Core Value Drivers</div>
+  <div class="drivers">
+    <div class="driver">
+      <div class="driver-icon" style="background:rgba(8,145,178,0.12);">🔄</div>
+      <div class="driver-body">
+        <div class="driver-title">Dynamic QR = Zero Reprint Cost</div>
+        <div class="driver-desc">Static QR codes are permanent — change the destination and you reprint everything. Dynamic QR codes let you point the same printed code to any URL, anytime. Change a menu link, seasonal promotion, or event page without touching the physical print.</div>
+        <div class="driver-val" style="color:var(--success)">↓ 100% reprint cost reduction</div>
+      </div>
+    </div>
+    <div class="driver">
+      <div class="driver-icon" style="background:rgba(96,165,250,0.12);">📊</div>
+      <div class="driver-body">
+        <div class="driver-title">Scan Analytics = Offline Attribution</div>
+        <div class="driver-desc">Every scan is logged: timestamp, city, device, OS, browser. For the first time, offline marketing channels (flyers, packaging, signage, menus) have real attribution data. Businesses can see which physical touchpoint drives the most engagement.</div>
+        <div class="driver-val" style="color:var(--info)">Full offline-to-online attribution</div>
+      </div>
+    </div>
+    <div class="driver">
+      <div class="driver-icon" style="background:rgba(52,211,153,0.12);">🎨</div>
+      <div class="driver-body">
+        <div class="driver-title">Custom Design Without a Designer</div>
+        <div class="driver-desc">Brand-colored QR codes with logo overlays, custom dot shapes, and styled frames — in 60 seconds. Competitors charge $50–$150/hr for this. QRcodee's visual editor puts it in the hands of the business owner directly, with no design skill required.</div>
+        <div class="driver-val" style="color:var(--starter)">On-brand QRs in &lt;60 seconds</div>
+      </div>
+    </div>
+    <div class="driver">
+      <div class="driver-icon" style="background:rgba(251,191,36,0.12);">⚡</div>
+      <div class="driver-body">
+        <div class="driver-title">Bulk Generation = Agency Superpower</div>
+        <div class="driver-desc">Upload a CSV of 500 URLs, get 500 custom-designed QR codes in a ZIP file. Menu items, product SKUs, event tables, location pages — anything that needs a unique QR at scale. What took hours of copy-paste is done in seconds.</div>
+        <div class="driver-val" style="color:var(--warn)">500 QRs in &lt;30 seconds</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Competitive ROI vs QRCodeChimp -->
+  <div class="section-label">Competitive Comparison — QRcodee vs. QRCodeChimp</div>
+  <div class="vs-table-wrap">
+    <table class="vs-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th class="center">QRCodeChimp Plus ($30/mo)</th>
+          <th class="center">QRcodee Pro ($49/mo)</th>
+          <th>QRcodee Advantage</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Dynamic QR codes</td>
+          <td class="center"><span class="check">✓</span> Unlimited</td>
+          <td class="center"><span class="check">✓</span> Unlimited</td>
+          <td style="font-size:11px;color:var(--muted2)">Parity — both unlimited</td>
+        </tr>
+        <tr>
+          <td>Scan analytics</td>
+          <td class="center"><span class="partial">~</span> Basic</td>
+          <td class="center"><span class="check">✓</span> Full + export</td>
+          <td style="font-size:11px;color:var(--success)">QRcodee: more detail, CSV export, date range</td>
+        </tr>
+        <tr>
+          <td>Custom design (logo + colors)</td>
+          <td class="center"><span class="check">✓</span> Yes</td>
+          <td class="center"><span class="check">✓</span> Yes + AI suggest</td>
+          <td style="font-size:11px;color:var(--success)">QRcodee: AI design suggestions</td>
+        </tr>
+        <tr>
+          <td>Bulk generation (CSV)</td>
+          <td class="center"><span class="partial">~</span> Limited</td>
+          <td class="center"><span class="check">✓</span> 500/batch</td>
+          <td style="font-size:11px;color:var(--success)">QRcodee: higher batch limit</td>
+        </tr>
+        <tr>
+          <td>API access</td>
+          <td class="center"><span class="cross">✗</span> Enterprise only</td>
+          <td class="center"><span class="check">✓</span> Pro+</td>
+          <td style="font-size:11px;color:var(--success)">QRcodee: API at $49 vs. enterprise pricing</td>
+        </tr>
+        <tr>
+          <td>White label</td>
+          <td class="center"><span class="cross">✗</span> Not available</td>
+          <td class="center"><span class="check">✓</span> Agency tier</td>
+          <td style="font-size:11px;color:var(--success)">QRcodee: agency white label at $149</td>
+        </tr>
+        <tr>
+          <td>Modern UI / UX</td>
+          <td class="center"><span class="partial">~</span> Dated interface</td>
+          <td class="center"><span class="check">✓</span> Next.js 15, dark mode</td>
+          <td style="font-size:11px;color:var(--success)">QRcodee: significantly better UX</td>
+        </tr>
+        <tr>
+          <td>Price</td>
+          <td class="center" style="color:var(--warn)">$30/mo</td>
+          <td class="center" style="color:var(--success)">$49/mo</td>
+          <td style="font-size:11px;color:var(--muted2)">QRcodee priced higher — justified by UX + API + AI</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Churn impact on LTV -->
+  <div class="section-label">Churn Rate Impact on LTV</div>
+  <div class="churn-table-wrap">
+    <table class="churn-table">
+      <thead>
+        <tr>
+          <th>Monthly Churn Rate</th>
+          <th>Avg Lifespan</th>
+          <th>Starter LTV</th>
+          <th>Pro LTV</th>
+          <th>Agency LTV</th>
+          <th>Blended LTV</th>
+          <th>LTV:CAC (target $80)</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1.5%</td>
+          <td>67 months</td>
+          <td>$1,273</td>
+          <td>$3,283</td>
+          <td>$9,983</td>
+          <td>$2,748</td>
+          <td>34.4×</td>
+          <td><span class="badge green">Excellent</span></td>
+        </tr>
+        <tr>
+          <td>2.5%</td>
+          <td>40 months</td>
+          <td>$760</td>
+          <td>$1,960</td>
+          <td>$5,960</td>
+          <td>$1,640</td>
+          <td>20.5×</td>
+          <td><span class="badge green">Strong</span></td>
+        </tr>
+        <tr>
+          <td><strong>3.5% (Base)</strong></td>
+          <td><strong>29 months</strong></td>
+          <td><strong>$551</strong></td>
+          <td><strong>$1,421</strong></td>
+          <td><strong>$4,321</strong></td>
+          <td><strong>$1,189</strong></td>
+          <td><strong>14.9×</strong></td>
+          <td><span class="badge purple">Target</span></td>
+        </tr>
+        <tr>
+          <td>5.0%</td>
+          <td>20 months</td>
+          <td>$380</td>
+          <td>$980</td>
+          <td>$2,980</td>
+          <td>$820</td>
+          <td>10.3×</td>
+          <td><span class="badge yellow">Acceptable</span></td>
+        </tr>
+        <tr>
+          <td>8.0%</td>
+          <td>12.5 months</td>
+          <td>$238</td>
+          <td>$613</td>
+          <td>$1,863</td>
+          <td>$513</td>
+          <td>6.4×</td>
+          <td><span class="badge red">Concern</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>

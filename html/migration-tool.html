@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QRcodee — Client Migration from QRCodeChimp</title>
+<style>
+  :root {
+    --qr: #0891b2; --qr-hover: #22d3ee; --qr-dim: #0e7490;
+    --bg: #060d12; --surface: #0a1520; --surface2: #0f1e2c;
+    --border: #152a3a; --border2: #1e3d52;
+    --text: #e0f2f8; --muted: #2d6070; --muted2: #4d8090;
+    --success: #4ADE80; --warn: #f59e0b; --info: #38bdf8;
+    --danger: #FF6B6B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; font-size: 13px; min-height: 100vh; }
+
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo span { color: var(--qr); }
+  .header-meta { color: var(--muted2); font-size: 11px; }
+
+  .wrapper { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+  .page-title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .page-sub { color: var(--muted2); font-size: 12px; margin-bottom: 28px; }
+  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 12px; }
+
+  /* Alert box */
+  .alert { border-radius: 10px; padding: 16px 20px; margin-bottom: 24px; display: flex; gap: 14px; }
+  .alert.warn { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); }
+  .alert.info { background: rgba(8,145,178,0.08); border: 1px solid rgba(8,145,178,0.3); }
+  .alert.success { background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.3); }
+  .alert-icon { font-size: 20px; flex-shrink: 0; }
+  .alert-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .alert.warn .alert-title { color: var(--warn); }
+  .alert.info .alert-title { color: var(--info); }
+  .alert.success .alert-title { color: var(--success); }
+  .alert-body { font-size: 12px; color: var(--muted2); line-height: 1.5; }
+
+  /* Migration flow steps */
+  .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin-bottom: 28px; position: relative; }
+  .flow::before { content: ''; position: absolute; top: 20px; left: 10%; right: 10%; height: 2px; background: var(--border); z-index: 0; }
+  .flow-step { text-align: center; position: relative; z-index: 1; }
+  .flow-dot { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; margin: 0 auto 10px; border: 2px solid var(--border); background: var(--bg); }
+  .flow-dot.active { background: var(--qr); border-color: var(--qr); color: #fff; }
+  .flow-dot.done { background: rgba(74,222,128,0.15); border-color: var(--success); color: var(--success); }
+  .flow-label { font-size: 11px; font-weight: 700; color: var(--muted2); }
+  .flow-sub { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+  /* Two col */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .card-title { font-size: 13px; font-weight: 700; margin-bottom: 14px; }
+
+  /* Data that migrates vs doesn't */
+  .migrate-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 28px; }
+  .migrate-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .migrate-card.can { border-top: 3px solid var(--success); }
+  .migrate-card.cant { border-top: 3px solid var(--danger); }
+  .migrate-card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 12px; }
+  .migrate-card.can .migrate-card-title { color: var(--success); }
+  .migrate-card.cant .migrate-card-title { color: var(--danger); }
+  .migrate-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; font-size: 12px; }
+  .check { color: var(--success); font-weight: 700; flex-shrink: 0; }
+  .cross { color: var(--danger); flex-shrink: 0; }
+  .migrate-item .sub { font-size: 10px; color: var(--muted2); margin-top: 2px; }
+
+  /* CSV format table */
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 28px; }
+  table { width: 100%; border-collapse: collapse; }
+  table thead { background: var(--surface2); }
+  table th { padding: 10px 14px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); text-align: left; }
+  table td { padding: 9px 14px; border-top: 1px solid var(--border); font-size: 12px; }
+  table tr:hover td { background: rgba(8,145,178,0.02); }
+  .badge { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 9px; font-weight: 700; text-transform: uppercase; }
+  .badge.req { background: rgba(245,158,11,0.12); color: var(--warn); border: 1px solid rgba(245,158,11,0.2); }
+  .badge.opt { background: rgba(8,145,178,0.1); color: var(--info); border: 1px solid rgba(8,145,178,0.2); }
+  .badge.gen { background: rgba(74,222,128,0.1); color: var(--success); border: 1px solid rgba(74,222,128,0.2); }
+  code { font-family: 'Courier New', monospace; font-size: 11px; background: var(--surface2); padding: 1px 5px; border-radius: 3px; color: var(--qr-hover); }
+
+  /* Migration wizard mockup */
+  .wizard { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 28px; }
+  .wizard-header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .wizard-title { font-size: 14px; font-weight: 700; }
+  .wizard-progress { font-size: 11px; color: var(--muted2); }
+  .wizard-body { padding: 20px; }
+  .wizard-step { margin-bottom: 20px; padding: 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; }
+  .wizard-step.active { border-color: rgba(8,145,178,0.4); background: rgba(8,145,178,0.05); }
+  .wizard-step-num { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); margin-bottom: 6px; }
+  .wizard-step.active .wizard-step-num { color: var(--qr); }
+  .wizard-step-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .wizard-step-desc { font-size: 11px; color: var(--muted2); line-height: 1.5; }
+  .upload-zone { border: 2px dashed var(--border2); border-radius: 8px; padding: 24px; text-align: center; margin-top: 12px; }
+  .upload-zone-text { font-size: 12px; color: var(--muted2); }
+  .upload-zone-cta { font-size: 13px; font-weight: 700; color: var(--qr); margin-bottom: 4px; }
+
+  /* Migration report mockup */
+  .report-row { display: grid; grid-template-columns: 1fr 40px 1fr 80px; gap: 12px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  .report-row:last-child { border-bottom: none; }
+  .report-row:hover { background: rgba(8,145,178,0.02); }
+  .report-header { background: var(--surface2); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); }
+  .old-slug { font-size: 11px; color: var(--danger); font-family: monospace; }
+  .new-slug { font-size: 11px; color: var(--success); font-family: monospace; }
+  .arrow { text-align: center; color: var(--muted); }
+  .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+  .status-ready { background: rgba(74,222,128,0.1); color: var(--success); border: 1px solid rgba(74,222,128,0.25); }
+  .status-reprint { background: rgba(245,158,11,0.1); color: var(--warn); border: 1px solid rgba(245,158,11,0.25); }
+  .status-digital { background: rgba(8,145,178,0.1); color: var(--info); border: 1px solid rgba(8,145,178,0.25); }
+
+  /* Timeline addition */
+  .feature-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
+  .feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .feature-card-title { font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+  .feature-card-desc { font-size: 11px; color: var(--muted2); line-height: 1.5; }
+  .feature-card-meta { margin-top: 10px; font-size: 10px; color: var(--muted); font-weight: 600; }
+  .feature-card.easy { border-top: 3px solid var(--success); }
+  .feature-card.medium { border-top: 3px solid var(--warn); }
+  .feature-card.complex { border-top: 3px solid var(--danger); }
+
+  /* Differentiator box */
+  .diff-box { background: rgba(8,145,178,0.06); border: 1px solid rgba(8,145,178,0.25); border-radius: 12px; padding: 20px 24px; margin-bottom: 28px; }
+  .diff-title { font-size: 14px; font-weight: 700; color: var(--qr-hover); margin-bottom: 10px; }
+  .diff-body { font-size: 12px; color: var(--muted2); line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">QRcode<span>e</span></div>
+  <div class="header-meta">Client Migration — QRCodeChimp → QRcodee.Online &nbsp;·&nbsp; Feature Design</div>
+</div>
+
+<div class="wrapper">
+  <div class="page-title">Client Migration Tool</div>
+  <div class="page-sub">Strategy and implementation plan for migrating existing QRCodeChimp clients into QRcodee. This is a competitive moat — make switching frictionless.</div>
+
+  <!-- Critical constraint alert -->
+  <div class="alert warn">
+    <div class="alert-icon">⚠️</div>
+    <div>
+      <div class="alert-title">The Printed QR Problem — Read First</div>
+      <div class="alert-body">
+        Dynamic QR codes from QRCodeChimp point to QRCodeChimp's redirect servers (e.g., <code>qrcodechimp.com/r/abc123</code>). That short URL is burned into the physical print. You <strong>cannot</strong> intercept or take over those redirects — they're on QRCodeChimp's infrastructure.<br><br>
+        <strong>What this means:</strong> Any QR code that has been physically printed (menus, flyers, packaging, signage) will still redirect through QRCodeChimp until it's reprinted. QRcodee migration creates <em>new</em> QR codes with new slugs that the client deploys as they naturally reprint or update digital channels.
+      </div>
+    </div>
+  </div>
+
+  <!-- Competitive differentiator -->
+  <div class="diff-box">
+    <div class="diff-title">🏆 Why This Is a Competitive Moat</div>
+    <div class="diff-body">
+      No other QR code platform offers a dedicated migration tool from QRCodeChimp. Most businesses dread switching because they think they'll lose all their data and have to manually recreate everything. QRcodee's migration wizard imports their entire library in minutes — names, destinations, folders, everything — and produces a deployment plan showing exactly which codes need reprinting vs. which are digital-only (instant swaps). This single feature removes the #1 objection to switching: "it's too much work."
+    </div>
+  </div>
+
+  <!-- What migrates / what doesn't -->
+  <div class="section-label">What Can & Cannot Be Migrated</div>
+  <div class="migrate-grid">
+    <div class="migrate-card can">
+      <div class="migrate-card-title">✓ Migrates Automatically</div>
+      <div class="migrate-item"><div class="check">✓</div><div><div>QR code names / labels</div><div class="sub">Preserved exactly from QRCodeChimp export</div></div></div>
+      <div class="migrate-item"><div class="check">✓</div><div><div>Destination URLs (dynamic QRs)</div><div class="sub">New QRcodee slugs created pointing to same destinations</div></div></div>
+      <div class="migrate-item"><div class="check">✓</div><div><div>QR code type (URL, vCard, WiFi, etc.)</div><div class="sub">Mapped to QRcodee type system</div></div></div>
+      <div class="migrate-item"><div class="check">✓</div><div><div>Folder / campaign structure</div><div class="sub">QRcodee folders created matching QRCodeChimp groups</div></div></div>
+      <div class="migrate-item"><div class="check">✓</div><div><div>Active / paused status</div><div class="sub">Paused codes stay paused in QRcodee</div></div></div>
+      <div class="migrate-item"><div class="check">✓</div><div><div>Creation date (for reference)</div><div class="sub">Stored as metadata — shows "migrated from QRCodeChimp"</div></div></div>
+      <div class="migrate-item"><div class="check">✓</div><div><div>New QR code images generated</div><div class="sub">New PNG/SVG with QRcodee default design, ready to deploy</div></div></div>
+    </div>
+    <div class="migrate-card cant">
+      <div class="migrate-card-title">✗ Cannot Be Migrated</div>
+      <div class="migrate-item"><div class="cross">✗</div><div><div>Existing physical QR code images</div><div class="sub">Already-printed codes still point to QRCodeChimp's servers</div></div></div>
+      <div class="migrate-item"><div class="cross">✗</div><div><div>Historical scan analytics</div><div class="sub">QRCodeChimp owns that data — not exportable in detail</div></div></div>
+      <div class="migrate-item"><div class="cross">✗</div><div><div>Custom QR code designs (exact)</div><div class="sub">Colors/logos must be re-applied in QRcodee's design editor</div></div></div>
+      <div class="migrate-item"><div class="cross">✗</div><div><div>QRCodeChimp short URLs</div><div class="sub">qrcodechimp.com/r/xxx stays on their infrastructure</div></div></div>
+      <div class="migrate-item"><div class="cross">✗</div><div><div>Custom landing pages (QRCodeChimp builder)</div><div class="sub">Must be rebuilt using QRcodee's landing page tools</div></div></div>
+      <div class="migrate-item"><div class="cross">✗</div><div><div>Team member / user accounts</div><div class="sub">Team members re-invited in QRcodee separately</div></div></div>
+    </div>
+  </div>
+
+  <!-- Migration flow -->
+  <div class="section-label">Migration Wizard — 5-Step Flow</div>
+  <div class="flow">
+    <div class="flow-step">
+      <div class="flow-dot done">1</div>
+      <div class="flow-label">Export from Chimp</div>
+      <div class="flow-sub">Download CSV from QRCodeChimp</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-dot active">2</div>
+      <div class="flow-label">Upload to QRcodee</div>
+      <div class="flow-sub">Drag & drop CSV</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-dot">3</div>
+      <div class="flow-label">Preview Mapping</div>
+      <div class="flow-sub">Review before import</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-dot">4</div>
+      <div class="flow-label">Import & Generate</div>
+      <div class="flow-sub">New codes created</div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-dot">5</div>
+      <div class="flow-label">Download & Deploy</div>
+      <div class="flow-sub">ZIP + deployment guide</div>
+    </div>
+  </div>
+
+  <!-- Wizard UI mockup -->
+  <div class="section-label">Migration Wizard UI (Route: /dashboard/migrate)</div>
+  <div class="wizard">
+    <div class="wizard-header">
+      <div class="wizard-title">Import QR Codes from QRCodeChimp</div>
+      <div class="wizard-progress">Step 1 of 5</div>
+    </div>
+    <div class="wizard-body">
+      <div class="wizard-step done" style="border-top:3px solid var(--success)">
+        <div class="wizard-step-num">Step 1 — Completed</div>
+        <div class="wizard-step-title">Export your QR codes from QRCodeChimp</div>
+        <div class="wizard-step-desc">In QRCodeChimp: Dashboard → QR Codes → ⋯ Menu → Export CSV. The CSV includes your QR code names, URLs, types, and folder assignments. Download that file and come back here.</div>
+      </div>
+      <div class="wizard-step active">
+        <div class="wizard-step-num">Step 2 — Current</div>
+        <div class="wizard-step-title">Upload your QRCodeChimp CSV export</div>
+        <div class="wizard-step-desc">We'll automatically detect the columns and map them to QRcodee's format. Supports QRCodeChimp's standard CSV format. Max 5,000 rows per import.</div>
+        <div class="upload-zone">
+          <div class="upload-zone-cta">Drop your CSV here or click to browse</div>
+          <div class="upload-zone-text">QRCodeChimp CSV · Max 5,000 rows · Max 10MB</div>
+        </div>
+      </div>
+      <div class="wizard-step">
+        <div class="wizard-step-num">Step 3 — Upcoming</div>
+        <div class="wizard-step-title">Preview your import — review before committing</div>
+        <div class="wizard-step-desc">See each QR code mapped to QRcodee. Spot errors. Set default design. Assign to a folder. Choose to import all or select specific codes.</div>
+      </div>
+      <div class="wizard-step">
+        <div class="wizard-step-num">Step 4 — Upcoming</div>
+        <div class="wizard-step-title">Import & generate new QR codes</div>
+        <div class="wizard-step-desc">QRcodee creates new dynamic QR codes with new short slugs. All point to the same destination URLs. Bulk QR image generation runs in the background.</div>
+      </div>
+      <div class="wizard-step">
+        <div class="wizard-step-num">Step 5 — Upcoming</div>
+        <div class="wizard-step-title">Download ZIP + deployment guide</div>
+        <div class="wizard-step-desc">ZIP of all new QR code PNGs. Side-by-side migration report (old slug → new slug). Deployment checklist: what needs reprinting vs. what's a digital-only swap.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CSV format -->
+  <div class="section-label">QRCodeChimp CSV Format → QRcodee Mapping</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>QRCodeChimp Column</th>
+          <th>Example Value</th>
+          <th>Maps to QRcodee Field</th>
+          <th>Required?</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>Name</code></td><td>Summer Menu 2025</td><td><code>qr_codes.name</code></td><td><span class="badge req">Required</span></td><td>Used as QR code label in dashboard</td></tr>
+        <tr><td><code>URL</code> / <code>Destination</code></td><td>https://menu.example.com</td><td><code>qr_codes.destination_url</code></td><td><span class="badge req">Required</span></td><td>New QRcodee slug created pointing here</td></tr>
+        <tr><td><code>Type</code></td><td>URL / vCard / WiFi</td><td><code>qr_codes.type</code></td><td><span class="badge opt">Optional</span></td><td>Defaults to 'url' if not recognized</td></tr>
+        <tr><td><code>Category</code> / <code>Group</code></td><td>Restaurant Clients</td><td><code>folders.name</code></td><td><span class="badge opt">Optional</span></td><td>Folder created if doesn't exist</td></tr>
+        <tr><td><code>Status</code></td><td>Active / Paused</td><td><code>qr_codes.is_paused</code></td><td><span class="badge opt">Optional</span></td><td>Paused = <code>is_paused: true</code></td></tr>
+        <tr><td><code>Created Date</code></td><td>2024-03-15</td><td><code>qr_codes.migrated_from_date</code></td><td><span class="badge opt">Optional</span></td><td>Stored as metadata only</td></tr>
+        <tr><td><code>Short URL</code></td><td>qrcodechimp.com/r/abc</td><td><code>qr_codes.old_slug_ref</code></td><td><span class="badge opt">Optional</span></td><td>Stored for reference in migration report</td></tr>
+        <tr><td style="color:var(--success)">New: <code>short_slug</code></td><td>xK7mPq2R</td><td><code>qr_codes.short_slug</code></td><td><span class="badge gen">Generated</span></td><td>Auto-generated 8-char QRcodee slug</td></tr>
+        <tr><td style="color:var(--success)">New: <code>qrcodee_url</code></td><td>qrcodee.online/r/xK7mPq2R</td><td>Migration report</td><td><span class="badge gen">Generated</span></td><td>New URL for client's deployment</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Migration report mockup -->
+  <div class="section-label">Migration Report Output — Side-by-Side Comparison</div>
+  <div class="table-wrap">
+    <div class="report-row report-header">
+      <div>QR Code Name</div>
+      <div></div>
+      <div>Old Slug → New QRcodee URL</div>
+      <div>Action Required</div>
+    </div>
+    <div class="report-row">
+      <div style="font-weight:600">Summer Menu 2025</div>
+      <div class="arrow">→</div>
+      <div>
+        <div class="old-slug">qrcodechimp.com/r/abc123</div>
+        <div class="new-slug">qrcodee.online/r/xK7mPq2R</div>
+      </div>
+      <div><span class="status-badge status-reprint">🖨 Reprint</span></div>
+    </div>
+    <div class="report-row">
+      <div style="font-weight:600">Website Footer QR</div>
+      <div class="arrow">→</div>
+      <div>
+        <div class="old-slug">qrcodechimp.com/r/def456</div>
+        <div class="new-slug">qrcodee.online/r/mN3pQw5T</div>
+      </div>
+      <div><span class="status-badge status-digital">💻 Digital Swap</span></div>
+    </div>
+    <div class="report-row">
+      <div style="font-weight:600">Table Tent — Table 5</div>
+      <div class="arrow">→</div>
+      <div>
+        <div class="old-slug">qrcodechimp.com/r/ghi789</div>
+        <div class="new-slug">qrcodee.online/r/jR8vLx2Z</div>
+      </div>
+      <div><span class="status-badge status-reprint">🖨 Reprint</span></div>
+    </div>
+    <div class="report-row">
+      <div style="font-weight:600">Email Signature QR</div>
+      <div class="arrow">→</div>
+      <div>
+        <div class="old-slug">qrcodechimp.com/r/jkl012</div>
+        <div class="new-slug">qrcodee.online/r/wY6hDs9B</div>
+      </div>
+      <div><span class="status-badge status-digital">💻 Digital Swap</span></div>
+    </div>
+    <div class="report-row">
+      <div style="font-weight:600">Holiday Promo 2024</div>
+      <div class="arrow">→</div>
+      <div>
+        <div class="old-slug">qrcodechimp.com/r/mno345</div>
+        <div class="new-slug">qrcodee.online/r/cF4kJm7N</div>
+      </div>
+      <div><span class="status-badge status-ready">✓ Inactive</span></div>
+    </div>
+  </div>
+
+  <!-- Action classification -->
+  <div class="section-label">Deployment Action Types Explained</div>
+  <div class="feature-cards">
+    <div class="feature-card easy">
+      <div class="feature-card-title" style="color:var(--success)">💻 Digital Swap — Instant</div>
+      <div class="feature-card-desc">QR code lives in a digital channel only (website, email signature, PDF, social media). Simply replace the image file or update the embed URL. No printing needed. Client can do this in minutes.</div>
+      <div class="feature-card-meta">Example: website embeds, email, digital menus, apps</div>
+    </div>
+    <div class="feature-card medium">
+      <div class="feature-card-title" style="color:var(--warn)">🖨 Reprint Required — Planned</div>
+      <div class="feature-card-desc">QR code exists on physical printed materials (menus, table tents, flyers, packaging, signs). The old QRCodeChimp code still works until the reprint happens — clients can prioritize based on next print run.</div>
+      <div class="feature-card-meta">Example: printed menus, table tents, product packaging, signage</div>
+    </div>
+    <div class="feature-card easy" style="border-top-color:var(--info)">
+      <div class="feature-card-title" style="color:var(--info)">✓ Inactive — No Action</div>
+      <div class="feature-card-desc">Paused or expired QR codes. These can be recreated in QRcodee but don't need immediate deployment action. Good for archiving seasonal campaigns or discontinued promotions.</div>
+      <div class="feature-card-meta">Example: expired promotions, seasonal campaigns, retired menus</div>
+    </div>
+  </div>
+
+  <!-- Build plan for migration tool -->
+  <div class="section-label">Build Plan — Migration Tool Tasks (Add to ClickUp)</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Task</th><th>Route / File</th><th>Effort</th><th>Sprint</th><th>Priority</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Migration wizard page</strong> — 5-step UI</td><td><code>/dashboard/migrate</code></td><td>1 day</td><td>Week 7</td><td><span class="badge req">High</span></td></tr>
+        <tr><td><strong>CSV parser</strong> — QRCodeChimp format detection</td><td><code>/api/migrate/parse</code></td><td>4 hrs</td><td>Week 7</td><td><span class="badge req">High</span></td></tr>
+        <tr><td><strong>Preview mapping table</strong> — review before import</td><td>Client component</td><td>4 hrs</td><td>Week 7</td><td><span class="badge req">High</span></td></tr>
+        <tr><td><strong>Bulk import processor</strong> — create QR records + slugs</td><td><code>/api/migrate/import</code></td><td>6 hrs</td><td>Week 7</td><td><span class="badge req">High</span></td></tr>
+        <tr><td><strong>Migration report generator</strong> — PDF + CSV output</td><td>Server action</td><td>4 hrs</td><td>Week 7</td><td><span class="badge opt">Normal</span></td></tr>
+        <tr><td><strong>Deployment classifier</strong> — detect digital vs print</td><td>Server action</td><td>3 hrs</td><td>Week 7</td><td><span class="badge opt">Normal</span></td></tr>
+        <tr><td><strong>ZIP download</strong> — all new QR PNGs</td><td>Reuse bulk-gen ZIP</td><td>1 hr</td><td>Week 7</td><td><span class="badge req">High</span></td></tr>
+        <tr><td><strong>Supabase migration_jobs table</strong> — track import status</td><td>DB schema</td><td>1 hr</td><td>Week 1</td><td><span class="badge opt">Normal</span></td></tr>
+        <tr><td><strong>Migration history page</strong> — view past imports</td><td><code>/dashboard/migrate/history</code></td><td>2 hrs</td><td>Week 8</td><td><span class="badge opt">Low</span></td></tr>
+        <tr><td><strong>White-glove migration service</strong> — Agency tier upsell</td><td>Contact form flow</td><td>1 hr</td><td>Week 8</td><td><span class="badge opt">Normal</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Agency upsell -->
+  <div class="alert success">
+    <div class="alert-icon">💡</div>
+    <div>
+      <div class="alert-title">Agency Tier Upsell: White-Glove Migration Service</div>
+      <div class="alert-body">
+        For Agency plan customers, offer a white-glove migration service: they send you their QRCodeChimp credentials, you run the migration for them, classify all codes, produce the deployment guide, and provide a kickoff call.
+        Charge $150–$300 as a one-time migration fee or include free for annual Agency plan ($1,519/yr).
+        This removes every possible friction point from switching and justifies the Agency price point on day one.
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

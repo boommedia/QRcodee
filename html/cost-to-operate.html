@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QRcodee — Cost to Operate</title>
+<style>
+  :root {
+    --qr: #0891b2; --qr-hover: #22d3ee; --qr-dim: #0e7490;
+    --bg: #060d12; --surface: #0a1520; --surface2: #0f1e2c;
+    --border: #152a3a; --border2: #1e3d52;
+    --text: #e0f2f8; --muted: #2d6070; --muted2: #4d8090;
+    --success: #4ADE80; --warn: #f59e0b; --info: #38bdf8;
+    --starter: #34D399; --pro: #0891b2; --agency: #f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; font-size: 13px; min-height: 100vh; }
+
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo span { color: var(--qr); }
+  .header-meta { color: var(--muted); font-size: 11px; }
+
+  .wrapper { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+  .page-title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .page-sub { color: var(--muted2); font-size: 12px; margin-bottom: 28px; }
+  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 12px; }
+
+  .kpi-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 28px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .kpi .val { font-size: 22px; font-weight: 800; line-height: 1; }
+  .kpi .lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); margin-top: 6px; }
+  .kpi .trend { font-size: 10px; margin-top: 3px; }
+  .kpi.qr-accent { border-color: rgba(8,145,178,0.3); background: rgba(8,145,178,0.05); }
+  .kpi.green-accent { border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.05); }
+
+  .infra-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 28px; }
+  .infra-table { width: 100%; border-collapse: collapse; }
+  .infra-table thead { background: var(--surface2); }
+  .infra-table th { padding: 10px 14px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); text-align: left; }
+  .infra-table th.right { text-align: right; }
+  .infra-table td { padding: 10px 14px; border-top: 1px solid var(--border); font-size: 12px; vertical-align: top; }
+  .infra-table td.right { text-align: right; font-weight: 700; }
+  .infra-table tr.section-header td { background: var(--surface2); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); padding: 7px 14px; }
+  .infra-table tr:hover td { background: rgba(8,145,178,0.03); }
+  .infra-table tr.subtotal td { background: rgba(8,145,178,0.04); border-top: 2px solid var(--border2); font-weight: 700; }
+  .infra-table tr.total-row td { background: rgba(8,145,178,0.08); border-top: 2px solid rgba(8,145,178,0.3); font-weight: 800; font-size: 14px; }
+  .badge-fixed { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 9px; font-weight: 700; text-transform: uppercase; background: rgba(96,165,250,0.12); color: var(--info); border: 1px solid rgba(96,165,250,0.2); }
+  .badge-variable { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 9px; font-weight: 700; text-transform: uppercase; background: rgba(251,191,36,0.12); color: var(--warn); border: 1px solid rgba(251,191,36,0.2); }
+  .badge-free { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 9px; font-weight: 700; text-transform: uppercase; background: rgba(74,222,128,0.12); color: var(--success); border: 1px solid rgba(74,222,128,0.2); }
+  .service-name { font-weight: 700; }
+  .service-desc { font-size: 11px; color: var(--muted2); margin-top: 2px; }
+
+  .per-tier { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
+  .tier-cost-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .tier-cost-card.starter { border-top: 3px solid var(--starter); }
+  .tier-cost-card.pro { border-top: 3px solid var(--pro); }
+  .tier-cost-card.agency { border-top: 3px solid var(--agency); }
+  .tier-cost-name { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 12px; }
+  .tier-cost-card.starter .tier-cost-name { color: var(--starter); }
+  .tier-cost-card.pro .tier-cost-name { color: var(--pro); }
+  .tier-cost-card.agency .tier-cost-name { color: var(--agency); }
+  .margin-row { display: flex; justify-content: space-between; margin-bottom: 7px; font-size: 11px; padding-bottom: 7px; border-bottom: 1px solid var(--border); }
+  .margin-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .margin-row label { color: var(--muted2); }
+  .margin-row .val { font-weight: 700; }
+  .gross-margin { font-size: 22px; font-weight: 900; }
+
+  .stripe-calc { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 28px; }
+  .stripe-calc-title { font-size: 13px; font-weight: 700; margin-bottom: 16px; }
+  .stripe-scenarios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .stripe-scenario { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .stripe-scenario-name { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); margin-bottom: 10px; }
+  .stripe-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; }
+  .stripe-row label { color: var(--muted2); }
+  .stripe-divider { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
+  .stripe-net { font-size: 13px; font-weight: 800; }
+
+  .advantage-box { background: rgba(74,222,128,0.06); border: 1px solid rgba(74,222,128,0.2); border-radius: 10px; padding: 16px 20px; margin-bottom: 28px; display: flex; gap: 16px; align-items: flex-start; }
+  .advantage-icon { font-size: 24px; }
+  .advantage-title { font-size: 13px; font-weight: 700; color: var(--success); margin-bottom: 4px; }
+  .advantage-desc { font-size: 12px; color: var(--muted2); line-height: 1.5; }
+
+  .scaling-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 28px; }
+  .scaling-table { width: 100%; border-collapse: collapse; }
+  .scaling-table th { padding: 10px 14px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); text-align: right; background: var(--surface2); }
+  .scaling-table th:first-child { text-align: left; }
+  .scaling-table td { padding: 9px 14px; border-top: 1px solid var(--border); font-size: 12px; text-align: right; }
+  .scaling-table td:first-child { text-align: left; font-weight: 600; color: var(--muted2); }
+  .scaling-table tr:hover td { background: rgba(8,145,178,0.03); }
+  .scaling-table tr.highlight-row td { background: rgba(8,145,178,0.05); font-weight: 700; }
+  .green { color: var(--success); font-weight: 700; }
+  .red { color: #FF6B6B; font-weight: 700; }
+  .yellow { color: var(--warn); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">QRcode<span>e</span></div>
+  <div class="header-meta">Cost to Operate &nbsp;·&nbsp; Infrastructure & Platform Economics &nbsp;·&nbsp; May 2026</div>
+</div>
+
+<div class="wrapper">
+  <div class="page-title">Cost to Operate</div>
+  <div class="page-sub">Monthly infrastructure, platform fees, and unit economics. Assumes 100 paying customers (base). All costs in USD. QR generation uses open-source libraries — zero external API fees.</div>
+
+  <!-- Key cost advantage callout -->
+  <div class="advantage-box">
+    <div class="advantage-icon">⚡</div>
+    <div>
+      <div class="advantage-title">$0 QR Generation Cost — Structural Cost Advantage</div>
+      <div class="advantage-desc">Unlike SaaS tools that pay per QR code generated via third-party APIs ($0.01–$0.05 each), QRcodee uses <strong>qr-code-styling</strong> (open-source, MIT license) running server-side on Vercel. At 10,000 QR codes/month, competitors pay ~$200–$500 in API fees. QRcodee pays $0. This compounds to a significant structural margin advantage as volume scales.</div>
+    </div>
+  </div>
+
+  <!-- KPI strip -->
+  <div class="kpi-strip">
+    <div class="kpi qr-accent">
+      <div class="val" style="color:var(--qr)">$66</div>
+      <div class="lbl">Fixed Monthly COGS</div>
+      <div class="trend" style="color:var(--muted2)">At 100 customers</div>
+    </div>
+    <div class="kpi">
+      <div class="val" style="color:var(--warn)">$0.66</div>
+      <div class="lbl">Infra Cost Per Customer</div>
+      <div class="trend" style="color:var(--success)">↓ as scale grows</div>
+    </div>
+    <div class="kpi green-accent">
+      <div class="val" style="color:var(--success)">91.8%</div>
+      <div class="lbl">Gross Margin (Starter)</div>
+      <div class="trend" style="color:var(--success)">↑ target 95% at scale</div>
+    </div>
+    <div class="kpi">
+      <div class="val" style="color:var(--info)">$0.00</div>
+      <div class="lbl">QR Generation API Cost</div>
+      <div class="trend" style="color:var(--success)">Open-source library</div>
+    </div>
+    <div class="kpi">
+      <div class="val" style="color:var(--starter)">2.9%</div>
+      <div class="lbl">Stripe Transaction Fee</div>
+      <div class="trend" style="color:var(--muted2)">+ $0.30 per charge</div>
+    </div>
+  </div>
+
+  <!-- Infrastructure table -->
+  <div class="section-label">Monthly Infrastructure Costs — 100 Customers</div>
+  <div class="infra-wrap">
+    <table class="infra-table">
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Plan / Usage</th>
+          <th>Type</th>
+          <th class="right">Monthly Cost</th>
+          <th class="right">Annual Cost</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="section-header"><td colspan="6">▸ Core Infrastructure</td></tr>
+        <tr>
+          <td><div class="service-name">Supabase</div><div class="service-desc">Auth, PostgreSQL, Storage (QR logos/assets), Realtime</div></td>
+          <td>Pro plan</td>
+          <td><span class="badge-fixed">Fixed</span></td>
+          <td class="right">$25.00</td>
+          <td class="right">$300</td>
+          <td style="font-size:11px;color:var(--muted2)">8GB DB handles millions of QR codes + scan analytics rows</td>
+        </tr>
+        <tr>
+          <td><div class="service-name">Vercel</div><div class="service-desc">Next.js hosting, edge functions (short-URL redirect), analytics</div></td>
+          <td>Pro plan</td>
+          <td><span class="badge-fixed">Fixed</span></td>
+          <td class="right">$20.00</td>
+          <td class="right">$240</td>
+          <td style="font-size:11px;color:var(--muted2)">Edge functions handle dynamic QR redirects globally &lt;30ms</td>
+        </tr>
+        <tr>
+          <td><div class="service-name">Custom Domain</div><div class="service-desc">qrcodee.online annual registration</div></td>
+          <td>Annual / amortized</td>
+          <td><span class="badge-fixed">Fixed</span></td>
+          <td class="right">$1.25</td>
+          <td class="right">$15</td>
+          <td style="font-size:11px;color:var(--muted2)">Namecheap .online TLD</td>
+        </tr>
+        <tr class="section-header"><td colspan="6">▸ Communication & Email</td></tr>
+        <tr>
+          <td><div class="service-name">Resend</div><div class="service-desc">Transactional email (welcome, billing, scan alerts, digests)</div></td>
+          <td>Pro ($20/mo)</td>
+          <td><span class="badge-fixed">Fixed</span></td>
+          <td class="right">$20.00</td>
+          <td class="right">$240</td>
+          <td style="font-size:11px;color:var(--muted2)">50K emails/mo; includes weekly analytics digest emails</td>
+        </tr>
+        <tr class="section-header"><td colspan="6">▸ Payment Processing</td></tr>
+        <tr>
+          <td><div class="service-name">Stripe</div><div class="service-desc">Subscription billing, Customer Portal, webhooks</div></td>
+          <td>2.9% + $0.30/txn</td>
+          <td><span class="badge-variable">Variable</span></td>
+          <td class="right">$152.30</td>
+          <td class="right">$1,828</td>
+          <td style="font-size:11px;color:var(--muted2)">Blended ARPU $41 × 100 customers = $4,100 MRR</td>
+        </tr>
+        <tr class="section-header"><td colspan="6">▸ QR Code Generation</td></tr>
+        <tr>
+          <td><div class="service-name">qr-code-styling (npm)</div><div class="service-desc">Custom QR generation — dots, eyes, logos, colors, shapes</div></td>
+          <td>MIT Open Source</td>
+          <td><span class="badge-free">Free</span></td>
+          <td class="right">$0.00</td>
+          <td class="right">$0</td>
+          <td style="font-size:11px;color:var(--muted2)">Major cost advantage — zero API cost per generation</td>
+        </tr>
+        <tr>
+          <td><div class="service-name">Short URL Redirects</div><div class="service-desc">qrcodee.online/r/[slug] — Vercel Edge Functions</div></td>
+          <td>Included in Vercel Pro</td>
+          <td><span class="badge-free">Free</span></td>
+          <td class="right">$0.00</td>
+          <td class="right">$0</td>
+          <td style="font-size:11px;color:var(--muted2)">Edge middleware handles millions of redirects at no extra cost</td>
+        </tr>
+        <tr class="section-header"><td colspan="6">▸ Developer Tools</td></tr>
+        <tr>
+          <td><div class="service-name">GitHub</div><div class="service-desc">Source control, CI/CD Actions</div></td>
+          <td>Free tier</td>
+          <td><span class="badge-free">Free</span></td>
+          <td class="right">$0.00</td>
+          <td class="right">$0</td>
+          <td style="font-size:11px;color:var(--muted2)">Vercel auto-deploys on push; no extra CI needed</td>
+        </tr>
+        <tr>
+          <td><div class="service-name">Sentry</div><div class="service-desc">Error tracking + performance monitoring</div></td>
+          <td>Developer (free)</td>
+          <td><span class="badge-free">Free</span></td>
+          <td class="right">$0.00</td>
+          <td class="right">$0</td>
+          <td style="font-size:11px;color:var(--muted2)">Upgrade to Team $26/mo at 500+ customers</td>
+        </tr>
+        <tr class="section-header"><td colspan="6">▸ AI Features</td></tr>
+        <tr>
+          <td><div class="service-name">Anthropic API</div><div class="service-desc">Claude for QR design suggestions, campaign copy, AI naming</div></td>
+          <td>Pay-per-use</td>
+          <td><span class="badge-variable">Variable</span></td>
+          <td class="right">$5.00</td>
+          <td class="right">$60</td>
+          <td style="font-size:11px;color:var(--muted2)">Est. 125 AI calls/mo × $0.04 avg — Pro+ feature gate</td>
+        </tr>
+        <tr class="subtotal">
+          <td colspan="3">Total Monthly Infrastructure Cost (Fixed)</td>
+          <td class="right" style="color:var(--qr);font-size:14px">$71.25</td>
+          <td class="right" style="color:var(--warn)">$855</td>
+          <td>Excl. Stripe + AI variable costs</td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="3">Total COGS (incl. Stripe @ $4,100 MRR + AI)</td>
+          <td class="right" style="color:var(--qr)">$228.55</td>
+          <td class="right" style="color:var(--warn)">$2,743</td>
+          <td style="font-size:11px;color:var(--success)">5.57% COGS ratio on $4,100 MRR</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Per-tier unit economics -->
+  <div class="section-label">Unit Economics by Tier</div>
+  <div class="per-tier">
+    <div class="tier-cost-card starter">
+      <div class="tier-cost-name">Starter — $19/mo</div>
+      <div class="margin-row"><label>Revenue</label><div class="val" style="color:var(--text)">$19.00</div></div>
+      <div class="margin-row"><label>Stripe fee (2.9% + $0.30)</label><div class="val" style="color:#FF6B6B">−$0.85</div></div>
+      <div class="margin-row"><label>Infra cost per seat</label><div class="val" style="color:#FF6B6B">−$0.66</div></div>
+      <div class="margin-row"><label>AI cost per seat (avg)</label><div class="val" style="color:#FF6B6B">−$0.05</div></div>
+      <div class="margin-row"><label>Net revenue per seat</label><div class="val" style="color:var(--success)">$17.44</div></div>
+      <div class="margin-row" style="border-bottom:none;">
+        <label>Gross Margin</label>
+        <div class="gross-margin" style="color:var(--success)">91.8%</div>
+      </div>
+    </div>
+    <div class="tier-cost-card pro">
+      <div class="tier-cost-name">Pro — $49/mo</div>
+      <div class="margin-row"><label>Revenue</label><div class="val" style="color:var(--text)">$49.00</div></div>
+      <div class="margin-row"><label>Stripe fee (2.9% + $0.30)</label><div class="val" style="color:#FF6B6B">−$1.72</div></div>
+      <div class="margin-row"><label>Infra cost per seat</label><div class="val" style="color:#FF6B6B">−$0.66</div></div>
+      <div class="margin-row"><label>AI cost per seat (avg)</label><div class="val" style="color:#FF6B6B">−$0.12</div></div>
+      <div class="margin-row"><label>Net revenue per seat</label><div class="val" style="color:var(--success)">$46.50</div></div>
+      <div class="margin-row" style="border-bottom:none;">
+        <label>Gross Margin</label>
+        <div class="gross-margin" style="color:var(--success)">94.9%</div>
+      </div>
+    </div>
+    <div class="tier-cost-card agency">
+      <div class="tier-cost-name">Agency — $149/mo</div>
+      <div class="margin-row"><label>Revenue</label><div class="val" style="color:var(--text)">$149.00</div></div>
+      <div class="margin-row"><label>Stripe fee (2.9% + $0.30)</label><div class="val" style="color:#FF6B6B">−$4.62</div></div>
+      <div class="margin-row"><label>Infra cost per seat</label><div class="val" style="color:#FF6B6B">−$0.66</div></div>
+      <div class="margin-row"><label>AI cost per seat (avg)</label><div class="val" style="color:#FF6B6B">−$0.40</div></div>
+      <div class="margin-row"><label>Net revenue per seat</label><div class="val" style="color:var(--success)">$143.32</div></div>
+      <div class="margin-row" style="border-bottom:none;">
+        <label>Gross Margin</label>
+        <div class="gross-margin" style="color:var(--success)">96.2%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stripe scenarios -->
+  <div class="stripe-calc">
+    <div class="stripe-calc-title">Stripe Fee Scenarios by Customer Mix</div>
+    <div class="stripe-scenarios">
+      <div class="stripe-scenario">
+        <div class="stripe-scenario-name">Early Stage — 100 Customers</div>
+        <div class="stripe-row"><label>Starter (60 × $19)</label><span>$1,140</span></div>
+        <div class="stripe-row"><label>Pro (30 × $49)</label><span>$1,470</span></div>
+        <div class="stripe-row"><label>Agency (10 × $149)</label><span>$1,490</span></div>
+        <hr class="stripe-divider">
+        <div class="stripe-row"><label>Gross MRR</label><span style="font-weight:700">$4,100</span></div>
+        <div class="stripe-row"><label>Stripe fees (est.)</label><span style="color:#FF6B6B">−$149.20</span></div>
+        <div class="stripe-row"><label>Net MRR after fees</label><div class="stripe-net" style="color:var(--success)">$3,951</div></div>
+      </div>
+      <div class="stripe-scenario">
+        <div class="stripe-scenario-name">Mid Stage — 300 Customers</div>
+        <div class="stripe-row"><label>Starter (180 × $19)</label><span>$3,420</span></div>
+        <div class="stripe-row"><label>Pro (90 × $49)</label><span>$4,410</span></div>
+        <div class="stripe-row"><label>Agency (30 × $149)</label><span>$4,470</span></div>
+        <hr class="stripe-divider">
+        <div class="stripe-row"><label>Gross MRR</label><span style="font-weight:700">$12,300</span></div>
+        <div class="stripe-row"><label>Stripe fees (est.)</label><span style="color:#FF6B6B">−$447.60</span></div>
+        <div class="stripe-row"><label>Net MRR after fees</label><div class="stripe-net" style="color:var(--success)">$11,852</div></div>
+      </div>
+      <div class="stripe-scenario">
+        <div class="stripe-scenario-name">Scale — 700 Customers</div>
+        <div class="stripe-row"><label>Starter (420 × $19)</label><span>$7,980</span></div>
+        <div class="stripe-row"><label>Pro (210 × $49)</label><span>$10,290</span></div>
+        <div class="stripe-row"><label>Agency (70 × $149)</label><span>$10,430</span></div>
+        <hr class="stripe-divider">
+        <div class="stripe-row"><label>Gross MRR</label><span style="font-weight:700">$28,700</span></div>
+        <div class="stripe-row"><label>Stripe fees (est.)</label><span style="color:#FF6B6B">−$1,045.30</span></div>
+        <div class="stripe-row"><label>Net MRR after fees</label><div class="stripe-net" style="color:var(--success)">$27,655</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cost scaling table -->
+  <div class="section-label">Infrastructure Cost Scaling</div>
+  <div class="scaling-wrap">
+    <table class="scaling-table">
+      <thead>
+        <tr>
+          <th>Customer Count</th>
+          <th>Est. MRR</th>
+          <th>Fixed Infra</th>
+          <th>Stripe Fees</th>
+          <th>AI Fees</th>
+          <th>Total COGS</th>
+          <th>COGS %</th>
+          <th>Gross Margin</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>25 customers</td><td>$1,025</td><td>$66.25</td><td class="red">$39.00</td><td class="red">$2.00</td><td class="red">$107</td><td class="yellow">10.4%</td><td class="green">89.6%</td></tr>
+        <tr><td>50 customers</td><td>$2,050</td><td>$66.25</td><td class="red">$74.75</td><td class="red">$3.50</td><td class="red">$145</td><td class="yellow">7.1%</td><td class="green">92.9%</td></tr>
+        <tr class="highlight-row"><td>100 customers</td><td>$4,100</td><td>$66.25</td><td class="red">$149.20</td><td class="red">$5.00</td><td class="red">$220</td><td>5.4%</td><td class="green">94.6%</td></tr>
+        <tr><td>250 customers</td><td>$10,250</td><td>$91.25</td><td class="red">$373.25</td><td class="red">$10.00</td><td class="red">$474</td><td>4.6%</td><td class="green">95.4%</td></tr>
+        <tr><td>500 customers</td><td>$20,500</td><td>$116.25</td><td class="red">$746.50</td><td class="red">$18.00</td><td class="red">$881</td><td>4.3%</td><td class="green">95.7%</td></tr>
+        <tr><td>1,000 customers</td><td>$41,000</td><td>$216.25</td><td class="red">$1,493</td><td class="red">$32.00</td><td class="red">$1,741</td><td>4.2%</td><td class="green">95.8%</td></tr>
+        <tr><td>2,500 customers</td><td>$102,500</td><td>$341.25</td><td class="red">$3,732</td><td class="red">$75.00</td><td class="red">$4,148</td><td>4.0%</td><td class="green">96.0%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>

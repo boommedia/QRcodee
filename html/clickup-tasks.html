@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QRcodee — ClickUp Task List</title>
+<style>
+  :root {
+    --qr: #0891b2; --qr-hover: #22d3ee; --qr-dim: #0e7490;
+    --bg: #060d12; --surface: #0a1520; --surface2: #0f1e2c;
+    --border: #152a3a; --border2: #1e3d52;
+    --text: #e0f2f8; --muted: #2d6070; --muted2: #4d8090;
+    --success: #4ADE80; --warn: #f59e0b; --info: #38bdf8;
+    --p1: #FF4444; --p2: #f59e0b; --p3: #0891b2; --p4: #2d6070;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; font-size: 13px; min-height: 100vh; }
+
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo span { color: var(--qr); }
+  .header-meta { color: var(--muted); font-size: 11px; }
+
+  .wrapper { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+  .page-title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .page-sub { color: var(--muted2); font-size: 12px; margin-bottom: 28px; }
+
+  /* Summary stats */
+  .summary-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 28px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; }
+  .stat .val { font-size: 20px; font-weight: 800; }
+  .stat .lbl { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); margin-top: 4px; }
+
+  /* Folder/List structure */
+  .space-label { font-size: 16px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 20px; padding: 12px 16px; background: rgba(8,145,178,0.08); border: 1px solid rgba(8,145,178,0.25); border-radius: 8px; color: var(--qr-hover); }
+  .space-label span { color: var(--muted); font-size: 12px; font-weight: 400; margin-left: 8px; }
+
+  .folder { margin-bottom: 28px; }
+  .folder-header { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted2); padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 8px; }
+  .folder-icon { font-size: 14px; }
+  .folder-count { margin-left: auto; font-size: 10px; color: var(--muted); font-weight: 600; }
+
+  .list { border: 1px solid var(--border); border-top: none; margin-bottom: 0; }
+  .list:last-child { border-radius: 0 0 8px 8px; }
+  .list-header { padding: 8px 14px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .list-name { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--qr-hover); }
+  .list-count { margin-left: auto; font-size: 10px; color: var(--muted); }
+
+  /* Task rows */
+  .task-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 14px 9px 28px; border-bottom: 1px solid var(--border); background: var(--bg); }
+  .task-row:last-child { border-bottom: none; }
+  .task-row:hover { background: rgba(8,145,178,0.02); }
+  .task-checkbox { width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid var(--border2); flex-shrink: 0; margin-top: 2px; }
+  .task-name { flex: 1; font-size: 12px; line-height: 1.4; }
+  .task-desc { font-size: 11px; color: var(--muted2); margin-top: 2px; }
+  .task-meta { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .priority { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 9px; font-weight: 700; text-transform: uppercase; }
+  .p1 { background: rgba(255,68,68,0.12); color: var(--p1); border: 1px solid rgba(255,68,68,0.2); }
+  .p2 { background: rgba(245,158,11,0.12); color: var(--p2); border: 1px solid rgba(245,158,11,0.2); }
+  .p3 { background: rgba(8,145,178,0.12); color: var(--p3); border: 1px solid rgba(8,145,178,0.2); }
+  .p4 { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+  .tag { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 9px; font-weight: 600; background: var(--surface2); color: var(--muted2); border: 1px solid var(--border); }
+  .due { font-size: 10px; color: var(--muted); }
+
+  /* Subtask */
+  .subtask-row { display: flex; align-items: flex-start; gap: 10px; padding: 7px 14px 7px 46px; border-bottom: 1px solid var(--border); background: var(--bg); }
+  .subtask-row:last-child { border-bottom: none; }
+  .subtask-row:hover { background: rgba(8,145,178,0.015); }
+  .subtask-row .task-checkbox { border-style: dashed; opacity: 0.6; }
+  .subtask-row .task-name { font-size: 11px; color: var(--muted2); }
+
+  /* Copy-to-ClickUp button style note */
+  .copy-note { background: rgba(96,165,250,0.06); border: 1px solid rgba(96,165,250,0.2); border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 12px; color: var(--info); }
+
+  /* Sprint planning table */
+  .sprint-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 28px; }
+  .sprint-table { width: 100%; border-collapse: collapse; }
+  .sprint-table th { padding: 10px 14px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); background: var(--surface2); text-align: left; }
+  .sprint-table td { padding: 9px 14px; border-top: 1px solid var(--border); font-size: 12px; }
+  .sprint-table tr:hover td { background: rgba(8,145,178,0.02); }
+  .sprint-num { display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: rgba(8,145,178,0.15); color: var(--qr); font-size: 11px; font-weight: 700; text-align: center; line-height: 22px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">QRcode<span>e</span></div>
+  <div class="header-meta">ClickUp Task List &nbsp;·&nbsp; Beta Build Sprint &nbsp;·&nbsp; May–July 2026</div>
+</div>
+
+<div class="wrapper">
+  <div class="page-title">ClickUp Task List — QRcodee.Online</div>
+  <div class="page-sub">Full task breakdown for the 8-week beta build. Copy this structure into ClickUp: Space → Folders → Lists → Tasks → Subtasks. Priorities: 🔴 Urgent · 🟡 High · 🟣 Normal · ⚫ Low</div>
+
+  <div class="copy-note">ℹ️ Import instructions: Create a Space named <strong>QRcodee.Online</strong> in ClickUp. Create each Folder below as a ClickUp Folder. Each List becomes a ClickUp List inside that folder. Tasks and subtasks map 1:1. Set due dates by sprint week from the Beta Build Timeline.</div>
+
+  <!-- Summary -->
+  <div class="summary-strip">
+    <div class="stat"><div class="val" style="color:var(--qr)">6</div><div class="lbl">Folders</div></div>
+    <div class="stat"><div class="val" style="color:var(--info)">18</div><div class="lbl">Lists</div></div>
+    <div class="stat"><div class="val" style="color:var(--warn)">84</div><div class="lbl">Tasks</div></div>
+    <div class="stat"><div class="val" style="color:var(--p1)">22</div><div class="lbl">Urgent Priority</div></div>
+    <div class="stat"><div class="val" style="color:var(--success)">8</div><div class="lbl">Weeks to Beta</div></div>
+    <div class="stat"><div class="val" style="color:var(--done)">Jul 14</div><div class="lbl">Launch Date</div></div>
+  </div>
+
+  <div class="space-label">📁 Space: QRcodee.Online <span>— 6 folders · 18 lists · 84 tasks</span></div>
+
+  <!-- FOLDER 1: Infrastructure Setup -->
+  <div class="folder">
+    <div class="folder-header"><span class="folder-icon">⚙️</span> FOLDER: Infrastructure & Setup <span class="folder-count">Week 1–2 · 18 tasks</span></div>
+
+    <div class="list">
+      <div class="list-header"><span class="list-name">Project Foundation</span><span class="list-count">8 tasks</span></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Initialize Next.js 15 project<div class="task-desc">App Router, TypeScript, Tailwind 4 — match Servvee/Rankee structure</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 1</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Configure Vercel project + custom domain<div class="task-desc">Connect qrcodee.online, SSL, environment variables</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 1</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Create GitHub repository<div class="task-desc">github.com/boommedia/QRcodee — push initial commit, connect Vercel</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 1</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Setup Supabase project<div class="task-desc">Create project, get anon + service role keys, configure .env.local</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 1</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Configure Resend email domain<div class="task-desc">Add DNS records for qrcodee.online, verify sending domain</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 1</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Setup Stripe account + Products<div class="task-desc">Create Starter ($19), Pro ($49), Agency ($149) products with monthly + annual prices</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 1</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Install core npm packages<div class="task-desc">qr-code-styling, qrcode, jszip, html-to-image, nanoid, react-colorful, lucide-react</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 1</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Setup Anthropic SDK<div class="task-desc">@anthropic-ai/sdk — for AI design suggestions feature (Pro+)</div></div><div class="task-meta"><span class="priority p3">Normal</span><span class="tag">Week 2</span></div></div>
+    </div>
+
+    <div class="list">
+      <div class="list-header"><span class="list-name">Database Schema</span><span class="list-count">6 tasks</span></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Design users + subscriptions schema<div class="task-desc">users, user_profiles, subscriptions (plan, stripe_customer_id, status)</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 1</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Design qr_codes table<div class="task-desc">id, user_id, type, name, destination_url, short_slug, design_config (JSONB), is_dynamic, is_paused, folder_id</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 1</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Design scans analytics table<div class="task-desc">id, qr_id, scanned_at, ip_hash, country, city, device, os, browser</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 1</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Design folders + api_keys tables<div class="task-desc">folders (user_id, name, color), api_keys (user_id, key_hash, name, last_used, rate_limit)</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 2</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Write Supabase RLS policies<div class="task-desc">All tables: users can only read/write own rows. Service role bypasses for webhooks.</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 1</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Create Supabase storage buckets<div class="task-desc">qr-logos bucket (user logo uploads), qr-exports bucket (generated files)</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 2</span></div></div>
+    </div>
+
+    <div class="list">
+      <div class="list-header"><span class="list-name">Authentication</span><span class="list-count">4 tasks</span></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Login + signup pages<div class="task-desc">Email/password + Google OAuth via Supabase Auth. Match brand design.</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 1</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Password reset + email verification<div class="task-desc">Supabase magic link flow. Resend template for password reset email.</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 2</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Protected route middleware<div class="task-desc">Next.js middleware redirects unauthenticated users to /login</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 1</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">User settings page<div class="task-desc">Name, email, password change, delete account. Connect to Supabase user profile.</div></div><div class="task-meta"><span class="priority p3">Normal</span><span class="tag">Week 2</span></div></div>
+    </div>
+  </div>
+
+  <!-- FOLDER 2: QR Generation -->
+  <div class="folder">
+    <div class="folder-header"><span class="folder-icon">📱</span> FOLDER: QR Code Generation <span class="folder-count">Week 2–4 · 20 tasks</span></div>
+
+    <div class="list">
+      <div class="list-header"><span class="list-name">QR Types (12 total)</span><span class="list-count">12 tasks</span></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">URL QR code type<div class="task-desc">Any URL. Optional UTM source/medium/campaign params builder.</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 2</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">vCard QR (contact card)<div class="task-desc">Name, phone, email, company, address, website, photo upload</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 2</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">WiFi QR code<div class="task-desc">Network name (SSID), password, WPA/WPA2/WEP/open encryption</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 2</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Email QR code<div class="task-desc">Pre-fill recipient email, subject line, body text</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 2</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">SMS QR code<div class="task-desc">Pre-fill phone number + message text</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 2</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Phone / Call QR code<div class="task-desc">Direct phone number dial on scan</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 2</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">WhatsApp QR code<div class="task-desc">Phone number + optional pre-filled message</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 3</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Instagram QR code<div class="task-desc">Instagram profile URL shortcut</div></div><div class="task-meta"><span class="priority p3">Normal</span><span class="tag">Week 3</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Facebook QR code<div class="task-desc">Facebook page/profile URL</div></div><div class="task-meta"><span class="priority p3">Normal</span><span class="tag">Week 3</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">TikTok / LinkedIn QR codes<div class="task-desc">Profile URL types for these platforms</div></div><div class="task-meta"><span class="priority p3">Normal</span><span class="tag">Week 3</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">PDF / File QR code<div class="task-desc">Upload PDF to Supabase Storage, QR points to hosted file URL</div></div><div class="task-meta"><span class="priority p3">Normal</span><span class="tag">Week 3</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Plain text QR code<div class="task-desc">Freeform text — directions, announcements, notes</div></div><div class="task-meta"><span class="priority p3">Normal</span><span class="tag">Week 3</span></div></div>
+    </div>
+
+    <div class="list">
+      <div class="list-header"><span class="list-name">Design Engine</span><span class="list-count">8 tasks</span></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Color picker UI (foreground + background)<div class="task-desc">react-colorful hex picker. Color presets row. Real-time preview update.</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 3</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Logo upload + positioning<div class="task-desc">Upload to Supabase Storage. Size slider (10–40%). Center or custom position.</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 3</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Dot style presets (8 styles)<div class="task-desc">square, rounded, dots, classy, classy-rounded, extra-rounded, diamond, star</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 3</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Eye (corner) style presets<div class="task-desc">square-dot, dot-square, dot, extra-rounded, square — inner and outer separately</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 3</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Frame templates (12 frames)<div class="task-desc">"Scan Me", arrow frame, border-only, rounded frame, shadow, social variants</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 4</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Design preset library (20 presets)<div class="task-desc">Minimal-black, bold-purple, gradient-blue, retro-orange, etc. One-click apply.</div></div><div class="task-meta"><span class="priority p3">Normal</span><span class="tag">Week 4</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">PNG + SVG + PDF export<div class="task-desc">html-to-image for PNG. qr-code-styling SVG export. PDF via jsPDF wrapper.</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 3</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">AI design suggestion (Pro+)<div class="task-desc">Claude API call: given brand colors/industry → suggest QR color combo + style</div></div><div class="task-meta"><span class="priority p3">Normal</span><span class="tag">Week 7</span></div></div>
+    </div>
+  </div>
+
+  <!-- FOLDER 3: Dynamic QR + Analytics -->
+  <div class="folder">
+    <div class="folder-header"><span class="folder-icon">📊</span> FOLDER: Dynamic QR & Analytics <span class="folder-count">Week 4–6 · 18 tasks</span></div>
+
+    <div class="list">
+      <div class="list-header"><span class="list-name">Short URL / Redirect System</span><span class="list-count">7 tasks</span></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Short slug generator (nanoid)<div class="task-desc">8-char URL-safe slugs. Collision check against existing slugs in DB.</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 4</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Vercel edge middleware redirect handler<div class="task-desc">/r/[slug] → Supabase lookup → 302 redirect. &lt;30ms global latency.</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 4</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Scan event capture on redirect<div class="task-desc">Log to scans table: timestamp, ip_hash, country, city, device, os, browser. Fire-and-forget.</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 4</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Edit QR destination URL<div class="task-desc">User updates destination_url in DB. Same slug. No reprint needed. Show "updated" confirmation.</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 4</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">QR pause / resume toggle<div class="task-desc">Paused QR serves branded inactive page at /r/[slug]. Resume restores redirect.</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 5</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Custom short slug (Pro+)<div class="task-desc">User types /r/my-brand instead of auto slug. Validate: alphanumeric + hyphens, no conflicts.</div></div><div class="task-meta"><span class="priority p3">Normal</span><span class="tag">Week 5</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Inactive QR landing page<div class="task-desc">Branded page: "This QR code is currently inactive. Contact the owner." QRcodee branding.</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 5</span></div></div>
+    </div>
+
+    <div class="list">
+      <div class="list-header"><span class="list-name">Analytics Dashboard</span><span class="list-count">6 tasks</span></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Analytics overview page<div class="task-desc">Total scans (today / 7d / 30d), top 5 QR codes by scans, scan trend line chart</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 5</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Per-QR analytics detail page<div class="task-desc">Scan timeline, location breakdown, device/OS/browser pie charts, date range filter</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 5</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Location analytics (country + city)<div class="task-desc">Top 10 scan countries, top 10 cities. Flag icons. Sorted by scan count.</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 5</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Device / OS / browser breakdown<div class="task-desc">iOS vs Android vs Desktop. Safari vs Chrome vs Firefox. ua-parser-js library.</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 5</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Date range filter (7d / 30d / 90d / custom)<div class="task-desc">Respect plan limits: Starter 30d max, Pro unlimited. Show upgrade prompt if limit hit.</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 6</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">CSV analytics export (Pro+)<div class="task-desc">Download full scan log as CSV: timestamp, location, device, OS, browser per row</div></div><div class="task-meta"><span class="priority p3">Normal</span><span class="tag">Week 6</span></div></div>
+    </div>
+
+    <div class="list">
+      <div class="list-header"><span class="list-name">Dashboard & Organization</span><span class="list-count">5 tasks</span></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">QR code library grid view<div class="task-desc">All user's QR codes. Card view with thumbnail, name, scan count, type, last scan date.</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 3</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Folder / campaign organization<div class="task-desc">Create folders (campaigns), move QR codes into folders, filter library by folder</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 6</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Search + filter QR library<div class="task-desc">Search by name. Filter by type (URL, vCard, etc.), status (active/paused), folder</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 6</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Bulk actions (delete, pause, move to folder)<div class="task-desc">Checkbox select multiple QRs. Bulk delete with confirmation. Bulk pause/resume.</div></div><div class="task-meta"><span class="priority p3">Normal</span><span class="tag">Week 7</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">QR code usage limits display<div class="task-desc">Progress bar: "45 of 100 QR codes used (Starter plan)" — with upgrade CTA when near limit</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 6</span></div></div>
+    </div>
+  </div>
+
+  <!-- FOLDER 4: Billing -->
+  <div class="folder">
+    <div class="folder-header"><span class="folder-icon">💳</span> FOLDER: Billing & Subscriptions <span class="folder-count">Week 6–7 · 10 tasks</span></div>
+
+    <div class="list">
+      <div class="list-header"><span class="list-name">Stripe Integration</span><span class="list-count">10 tasks</span></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Stripe Checkout flow (all 3 tiers)<div class="task-desc">Monthly and annual pricing. Pre-fill email from Supabase user. Success/cancel redirect.</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 6</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Stripe webhook handler (/api/webhooks/stripe)<div class="task-desc">customer.subscription.created/updated/deleted, payment_intent.succeeded/failed → update Supabase</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 6</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Plan limit enforcement middleware<div class="task-desc">QR code count, history depth, team seats, bulk gen, API access — all gated by subscription tier</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 6</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Stripe Customer Portal<div class="task-desc">Self-serve billing management — update card, cancel, view invoices. Pre-built Stripe UI.</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 7</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Upgrade / downgrade plan UI<div class="task-desc">In-app plan switcher. Show proration. Redirect to Stripe Checkout for upgrade.</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 7</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Upgrade prompts at limit boundaries<div class="task-desc">When user hits QR limit / tries restricted feature → show upgrade modal with CTA</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 7</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Free trial setup (7-day Pro trial)<div class="task-desc">New signups get 7-day Pro trial. No card required. Convert prompt before trial ends.</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 7</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Billing page (account/billing)<div class="task-desc">Current plan, next billing date, amount, manage subscription button</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 7</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Payment failed email + retry grace period<div class="task-desc">Resend email on payment failure. 3-day grace period before plan downgrades to Free.</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 7</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Annual plan discount (15% off)<div class="task-desc">Toggle on pricing page: Monthly ↔ Annual. Show savings amount. Stripe annual price IDs.</div></div><div class="task-meta"><span class="priority p3">Normal</span><span class="tag">Week 7</span></div></div>
+    </div>
+  </div>
+
+  <!-- FOLDER 5: Bulk Gen + API -->
+  <div class="folder">
+    <div class="folder-header"><span class="folder-icon">⚡</span> FOLDER: Bulk Generation & API <span class="folder-count">Week 7 · 10 tasks</span></div>
+
+    <div class="list">
+      <div class="list-header"><span class="list-name">Bulk Generation</span><span class="list-count">5 tasks</span></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">CSV upload UI + template download<div class="task-desc">Drag-and-drop CSV. Download template with sample rows. Column: name, url, type, folder</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 7</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Bulk QR processor (server action)<div class="task-desc">Parse CSV → generate QR for each row → apply default design → save to DB. Progress indicator.</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 7</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">ZIP download of bulk batch<div class="task-desc">jszip → bundle all PNG files → stream ZIP download. File names = QR code names.</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 7</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Bulk job progress UI<div class="task-desc">Real-time progress bar. Show "47 of 200 QRs generated." Cancel button. Supabase Realtime.</div></div><div class="task-meta"><span class="priority p3">Normal</span><span class="tag">Week 7</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Batch size enforcement by plan<div class="task-desc">Pro: 500 max per batch. Agency: unlimited. Show error + upgrade CTA if exceeded.</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 7</span></div></div>
+    </div>
+
+    <div class="list">
+      <div class="list-header"><span class="list-name">REST API (Pro+)</span><span class="list-count">5 tasks</span></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">API key generation + management<div class="task-desc">Generate SHA-256 key. Store hash. Show full key once. Revoke. Last-used tracking.</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 7</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">POST /api/v1/qr — create QR endpoint<div class="task-desc">Create QR code via API. Auth via API key header. Returns QR data + short URL.</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 7</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">GET / PATCH / DELETE QR endpoints<div class="task-desc">Full CRUD on QR codes via API. Update destination URL, pause, delete.</div></div><div class="task-meta"><span class="priority p3">Normal</span><span class="tag">Week 7</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">GET /api/v1/qr/:id/analytics<div class="task-desc">Return scan data for a QR code. Date range params. JSON response.</div></div><div class="task-meta"><span class="priority p3">Normal</span><span class="tag">Week 8</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Rate limiting + API docs page<div class="task-desc">1,000 req/hr Pro, 10,000 Agency. /docs page with endpoint reference. Upstash Redis for rate limiting.</div></div><div class="task-meta"><span class="priority p3">Normal</span><span class="tag">Week 8</span></div></div>
+    </div>
+  </div>
+
+  <!-- FOLDER 6: Marketing + Launch -->
+  <div class="folder">
+    <div class="folder-header"><span class="folder-icon">🚀</span> FOLDER: Marketing & Launch <span class="folder-count">Week 8 · 8 tasks</span></div>
+
+    <div class="list">
+      <div class="list-header"><span class="list-name">Email Templates (Resend)</span><span class="list-count">6 tasks</span></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Welcome email (on signup)<div class="task-desc">Brand intro, "create your first QR" CTA, link to docs. Resend React template.</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 8</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Payment success email<div class="task-desc">Plan name, amount charged, next billing date, link to dashboard. Resend React template.</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 8</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Payment failed email<div class="task-desc">Friendly notice, update payment link, 3-day grace period warning.</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 8</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Trial expiry warning (Day 5 of 7)<div class="task-desc">2 days left in trial. Highlight top features. CTA to upgrade.</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 8</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Weekly scan digest email (Pro+)<div class="task-desc">Total scans this week, top QR code, top location. Sent every Monday morning.</div></div><div class="task-meta"><span class="priority p3">Normal</span><span class="tag">Week 8</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Team member invite email<div class="task-desc">Invite link, team owner name, plan name. Expires in 48 hours.</div></div><div class="task-meta"><span class="priority p3">Normal</span><span class="tag">Week 8</span></div></div>
+    </div>
+
+    <div class="list">
+      <div class="list-header"><span class="list-name">Landing Page & Launch</span><span class="list-count">7 tasks</span></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Landing page — Hero section + live demo QR<div class="task-desc">Headline, sub, CTA button. Live QR code demo that user can scan to test.</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 8</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Landing page — Features + Pricing sections<div class="task-desc">Feature grid (6 key features), pricing table (4 tiers), FAQ accordion</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 8</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">SEO: meta tags + sitemap + OG image<div class="task-desc">Title: "QRcodee — Dynamic QR Code Generator". OG image generated. sitemap.xml.</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 8</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">QA pass — cross-device QR scan testing<div class="task-desc">Test all 12 QR types on iPhone 15, Samsung Galaxy, Pixel. All scan correctly.</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 8</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Performance audit (Core Web Vitals)<div class="task-desc">Vercel Speed Insights. LCP &lt;2.5s. CLS &lt;0.1. FID &lt;100ms. Fix any blockers.</div></div><div class="task-meta"><span class="priority p2">High</span><span class="tag">Week 8</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Beta customer outreach — 20 targets<div class="task-desc">Personal network, LinkedIn DMs to marketers + agency owners. Offer 3 months free for feedback.</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 8</span></div></div>
+      <div class="task-row"><div class="task-checkbox"></div><div class="task-name">Monitor post-launch (Week 1)<div class="task-desc">Watch Vercel function logs, Stripe webhooks, Supabase query performance. Fix any critical bugs same-day.</div></div><div class="task-meta"><span class="priority p1">Urgent</span><span class="tag">Week 9+</span></div></div>
+    </div>
+  </div>
+
+  <!-- Sprint planning reference -->
+  <div style="margin-top:8px">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:12px;">SPRINT ASSIGNMENTS — QUICK REFERENCE</div>
+    <div class="sprint-wrap">
+      <table class="sprint-table">
+        <thead>
+          <tr><th>Sprint</th><th>Dates</th><th>Focus</th><th>Deliverable</th><th>Tasks</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="sprint-num">1</span></td><td>May 19–23</td><td>Project init, Supabase, Vercel, Stripe setup</td><td>Working auth. Vercel deploy live.</td><td>14 tasks</td></tr>
+          <tr><td><span class="sprint-num">2</span></td><td>May 26–30</td><td>Database schema, RLS, QR generation core start</td><td>Schema finalized. URL + vCard + WiFi QR working.</td><td>10 tasks</td></tr>
+          <tr><td><span class="sprint-num">3</span></td><td>Jun 2–6</td><td>All 12 QR types + color/logo design editor</td><td>All types working. Design editor with live preview.</td><td>14 tasks</td></tr>
+          <tr><td><span class="sprint-num">4</span></td><td>Jun 9–13</td><td>Dot/eye styles, frames, presets, dynamic QR start</td><td>Full design engine. Short URL redirect working.</td><td>12 tasks</td></tr>
+          <tr><td><span class="sprint-num">5</span></td><td>Jun 16–20</td><td>Analytics dashboard, scan logging, custom slugs</td><td>Analytics page live. Per-QR detail view working.</td><td>10 tasks</td></tr>
+          <tr><td><span class="sprint-num">6</span></td><td>Jun 23–27</td><td>Billing, Stripe webhooks, plan gating</td><td>Full Stripe billing. All tiers purchasable.</td><td>10 tasks</td></tr>
+          <tr><td><span class="sprint-num">7</span></td><td>Jun 30–Jul 4</td><td>Bulk generation, API keys, Customer Portal</td><td>Bulk CSV → ZIP working. API endpoints live.</td><td>10 tasks</td></tr>
+          <tr><td><span class="sprint-num">8</span></td><td>Jul 7–14</td><td>Email templates, landing page, QA, launch</td><td>All emails. Landing page. 20 beta customers. 🚀</td><td>13 tasks</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QRcodee — Beta Build Timeline</title>
+<style>
+  :root {
+    --qr: #0891b2; --qr-hover: #22d3ee; --qr-dim: #0e7490;
+    --bg: #060d12; --surface: #0a1520; --surface2: #0f1e2c;
+    --border: #152a3a; --border2: #1e3d52;
+    --text: #e0f2f8; --muted: #2d6070; --muted2: #4d8090;
+    --success: #4ADE80; --warn: #f59e0b; --info: #38bdf8;
+    --done: #34D399; --in-progress: #0891b2; --todo: #2d6070;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; font-size: 13px; min-height: 100vh; }
+
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo span { color: var(--qr); }
+  .header-meta { color: var(--muted); font-size: 11px; }
+
+  .wrapper { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+  .page-title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .page-sub { color: var(--muted2); font-size: 12px; margin-bottom: 28px; }
+  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 12px; }
+
+  /* Summary KPIs */
+  .kpi-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 28px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .kpi .val { font-size: 22px; font-weight: 800; line-height: 1; }
+  .kpi .lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); margin-top: 6px; }
+
+  /* Phase timeline */
+  .timeline { display: flex; flex-direction: column; gap: 16px; margin-bottom: 36px; }
+  .phase { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .phase.current { border-color: rgba(8,145,178,0.4); box-shadow: 0 0 0 1px rgba(8,145,178,0.15); }
+  .phase-header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .phase-header-left { display: flex; align-items: center; gap: 14px; }
+  .phase-number { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0; }
+  .phase-number.done-n { background: rgba(52,211,153,0.15); color: var(--done); border: 1px solid rgba(52,211,153,0.3); }
+  .phase-number.active-n { background: rgba(8,145,178,0.2); color: var(--qr-hover); border: 1px solid rgba(8,145,178,0.4); }
+  .phase-number.todo-n { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+  .phase-title { font-size: 15px; font-weight: 800; }
+  .phase-dates { font-size: 11px; color: var(--muted2); margin-top: 2px; }
+  .phase-badge { padding: 3px 10px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; flex-shrink: 0; }
+  .phase-badge.done { background: rgba(52,211,153,0.12); color: var(--done); border: 1px solid rgba(52,211,153,0.25); }
+  .phase-badge.active { background: rgba(8,145,178,0.15); color: var(--qr-hover); border: 1px solid rgba(8,145,178,0.3); }
+  .phase-badge.todo { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+  .phase-body { padding: 16px 20px; }
+  .phase-goal { font-size: 12px; color: var(--muted2); margin-bottom: 14px; line-height: 1.5; }
+  .tasks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .task { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; }
+  .task-icon { font-size: 10px; flex-shrink: 0; margin-top: 2px; }
+  .task-text { font-size: 11px; line-height: 1.4; }
+  .task-sub { font-size: 10px; color: var(--muted2); margin-top: 2px; }
+  .task.done-t .task-text { color: var(--done); }
+  .task.active-t .task-text { color: var(--qr-hover); }
+  .task.todo-t .task-text { color: var(--muted2); }
+  .phase-deliverable { margin-top: 14px; padding: 10px 14px; border-radius: 8px; font-size: 11px; display: flex; align-items: center; gap: 8px; }
+  .phase-deliverable.done-d { background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2); color: var(--done); }
+  .phase-deliverable.active-d { background: rgba(8,145,178,0.08); border: 1px solid rgba(8,145,178,0.2); color: var(--qr-hover); }
+  .phase-deliverable.todo-d { background: var(--surface2); border: 1px solid var(--border); color: var(--muted2); }
+
+  /* Gantt-style bar */
+  .gantt-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 28px; }
+  .gantt-title { font-size: 13px; font-weight: 700; margin-bottom: 16px; }
+  .gantt-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .gantt-label { font-size: 11px; color: var(--muted2); width: 140px; flex-shrink: 0; text-align: right; }
+  .gantt-track { flex: 1; height: 26px; background: var(--surface2); border-radius: 4px; position: relative; }
+  .gantt-bar { position: absolute; height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 10px; font-size: 10px; font-weight: 700; }
+  .gantt-weeks { display: flex; margin-left: 150px; margin-bottom: 6px; }
+  .gantt-week { flex: 1; font-size: 9px; color: var(--muted); text-align: center; }
+
+  /* Tech stack summary */
+  .stack-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 28px; }
+  .stack-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .stack-name { font-size: 12px; font-weight: 700; }
+  .stack-role { font-size: 10px; color: var(--muted2); margin-top: 3px; }
+  .stack-cost { font-size: 10px; margin-top: 6px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">QRcode<span>e</span></div>
+  <div class="header-meta">Beta Build Timeline &nbsp;·&nbsp; 8-Week Sprint to Launch &nbsp;·&nbsp; May–July 2026</div>
+</div>
+
+<div class="wrapper">
+  <div class="page-title">Beta Build Timeline</div>
+  <div class="page-sub">8 weeks from project init to Vercel beta launch. Next.js 15 + Supabase + Stripe stack. One developer (you). Target: 20 paying beta customers by July 14, 2026.</div>
+
+  <!-- KPI strip -->
+  <div class="kpi-strip">
+    <div class="kpi">
+      <div class="val" style="color:var(--qr)">8 Weeks</div>
+      <div class="lbl">Total Build Time</div>
+    </div>
+    <div class="kpi">
+      <div class="val" style="color:var(--success)">Jul 14</div>
+      <div class="lbl">Beta Launch Target</div>
+    </div>
+    <div class="kpi">
+      <div class="val" style="color:var(--warn)">20</div>
+      <div class="lbl">Beta Customer Goal</div>
+    </div>
+    <div class="kpi">
+      <div class="val" style="color:var(--info)">6</div>
+      <div class="lbl">Core Feature Phases</div>
+    </div>
+    <div class="kpi">
+      <div class="val" style="color:var(--done)">$820</div>
+      <div class="lbl">Target MRR at Launch</div>
+    </div>
+  </div>
+
+  <!-- Gantt-style overview -->
+  <div class="gantt-wrap">
+    <div class="gantt-title">Sprint Overview — May 19 to July 14, 2026</div>
+    <div class="gantt-weeks">
+      <div class="gantt-week">Wk1<br>May 19</div>
+      <div class="gantt-week">Wk2<br>May 26</div>
+      <div class="gantt-week">Wk3<br>Jun 2</div>
+      <div class="gantt-week">Wk4<br>Jun 9</div>
+      <div class="gantt-week">Wk5<br>Jun 16</div>
+      <div class="gantt-week">Wk6<br>Jun 23</div>
+      <div class="gantt-week">Wk7<br>Jun 30</div>
+      <div class="gantt-week">Wk8<br>Jul 7</div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">Foundation & Auth</div>
+      <div class="gantt-track"><div class="gantt-bar" style="left:0;width:25%;background:rgba(8,145,178,0.3);color:var(--qr-hover)">Wk 1–2</div></div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">QR Generation Core</div>
+      <div class="gantt-track"><div class="gantt-bar" style="left:12.5%;width:25%;background:rgba(52,211,153,0.25);color:var(--done)">Wk 2–3</div></div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">Design Engine</div>
+      <div class="gantt-track"><div class="gantt-bar" style="left:25%;width:25%;background:rgba(96,165,250,0.25);color:var(--info)">Wk 3–4</div></div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">Dynamic QR + Redirects</div>
+      <div class="gantt-track"><div class="gantt-bar" style="left:37.5%;width:25%;background:rgba(251,191,36,0.2);color:var(--warn)">Wk 4–5</div></div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">Analytics Dashboard</div>
+      <div class="gantt-track"><div class="gantt-bar" style="left:50%;width:25%;background:rgba(245,158,11,0.2);color:#F59E0B">Wk 5–6</div></div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">Billing + Stripe</div>
+      <div class="gantt-track"><div class="gantt-bar" style="left:62.5%;width:25%;background:rgba(8,145,178,0.25);color:var(--qr-hover)">Wk 6–7</div></div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">Bulk Gen + API</div>
+      <div class="gantt-track"><div class="gantt-bar" style="left:75%;width:12.5%;background:rgba(74,222,128,0.2);color:var(--success)">Wk 7</div></div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">Landing + Launch</div>
+      <div class="gantt-track"><div class="gantt-bar" style="left:87.5%;width:12.5%;background:rgba(8,145,178,0.4);color:var(--qr-hover)">Wk 8</div></div>
+    </div>
+  </div>
+
+  <!-- Phase-by-phase breakdown -->
+  <div class="section-label">Phase-by-Phase Build Plan</div>
+  <div class="timeline">
+
+    <!-- Phase 1 -->
+    <div class="phase current">
+      <div class="phase-header">
+        <div class="phase-header-left">
+          <div class="phase-number active-n">1</div>
+          <div>
+            <div class="phase-title">Foundation, Auth & Database Schema</div>
+            <div class="phase-dates">Week 1–2 &nbsp;·&nbsp; May 19 – May 30, 2026</div>
+          </div>
+        </div>
+        <div class="phase-badge active">In Progress</div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-goal">Set up the project skeleton and all data structures before a single feature is built. Get auth working end-to-end so every subsequent feature can be gated immediately.</div>
+        <div class="tasks-grid">
+          <div class="task active-t"><div class="task-icon">🔧</div><div><div class="task-text">Next.js 15 + Tailwind 4 project init</div><div class="task-sub">Match Servvee/Rankee structure exactly</div></div></div>
+          <div class="task active-t"><div class="task-icon">🔐</div><div><div class="task-text">Supabase Auth — email + Google OAuth</div><div class="task-sub">Login, signup, password reset pages</div></div></div>
+          <div class="task todo-t"><div class="task-icon">🗄️</div><div><div class="task-text">Database schema: users, qr_codes, scans</div><div class="task-sub">subscriptions, folders, api_keys tables</div></div></div>
+          <div class="task todo-t"><div class="task-icon">🛡️</div><div><div class="task-text">Supabase RLS policies</div><div class="task-sub">Users can only access own QR codes</div></div></div>
+          <div class="task todo-t"><div class="task-icon">☁️</div><div><div class="task-text">Vercel project + domain setup</div><div class="task-sub">qrcodee.online → Vercel DNS</div></div></div>
+          <div class="task todo-t"><div class="task-icon">📦</div><div><div class="task-text">GitHub repo + .env structure</div><div class="task-sub">Match existing project conventions</div></div></div>
+          <div class="task todo-t"><div class="task-icon">📧</div><div><div class="task-text">Resend domain verification</div><div class="task-sub">qrcodee.online → Resend DNS records</div></div></div>
+          <div class="task todo-t"><div class="task-icon">💳</div><div><div class="task-text">Stripe account + Products setup</div><div class="task-sub">Starter $19, Pro $49, Agency $149 prices</div></div></div>
+        </div>
+        <div class="phase-deliverable active-d">🎯 Deliverable: Working auth flow. User can sign up, verify email, log in. Database schema finalized. Vercel deploy live at qrcodee.online.</div>
+      </div>
+    </div>
+
+    <!-- Phase 2 -->
+    <div class="phase">
+      <div class="phase-header">
+        <div class="phase-header-left">
+          <div class="phase-number todo-n">2</div>
+          <div>
+            <div class="phase-title">QR Generation Core — All 12 Types</div>
+            <div class="phase-dates">Week 2–3 &nbsp;·&nbsp; May 26 – Jun 6, 2026</div>
+          </div>
+        </div>
+        <div class="phase-badge todo">Upcoming</div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-goal">Install qr-code-styling and wire up all QR code types. Users can create any QR type, download PNG/SVG, and save to their library. No custom design yet — just working generation.</div>
+        <div class="tasks-grid">
+          <div class="task todo-t"><div class="task-icon">📦</div><div><div class="task-text">Install qr-code-styling + qrcode libs</div><div class="task-sub">Configure server-side generation</div></div></div>
+          <div class="task todo-t"><div class="task-icon">🔗</div><div><div class="task-text">URL QR code type</div><div class="task-sub">Any URL with optional UTM params</div></div></div>
+          <div class="task todo-t"><div class="task-icon">👤</div><div><div class="task-text">vCard QR (contact card)</div><div class="task-sub">Name, phone, email, address, photo</div></div></div>
+          <div class="task todo-t"><div class="task-icon">📶</div><div><div class="task-text">WiFi QR code type</div><div class="task-sub">SSID, password, encryption type</div></div></div>
+          <div class="task todo-t"><div class="task-icon">📱</div><div><div class="task-text">Social media QR types</div><div class="task-sub">Instagram, Facebook, TikTok, WhatsApp, LinkedIn</div></div></div>
+          <div class="task todo-t"><div class="task-icon">📧</div><div><div class="task-text">Email / SMS / Phone QR types</div><div class="task-sub">Pre-filled subject, body, number</div></div></div>
+          <div class="task todo-t"><div class="task-icon">💾</div><div><div class="task-text">PNG + SVG download buttons</div><div class="task-sub">html-to-image for PNG, raw SVG export</div></div></div>
+          <div class="task todo-t"><div class="task-icon">📚</div><div><div class="task-text">QR code library view (dashboard)</div><div class="task-sub">Grid view, sort by date, search by name</div></div></div>
+        </div>
+        <div class="phase-deliverable todo-d">🎯 Deliverable: Create QR page functional. All 12 QR types working. Download PNG and SVG. QRs saved to Supabase and shown in dashboard library.</div>
+      </div>
+    </div>
+
+    <!-- Phase 3 -->
+    <div class="phase">
+      <div class="phase-header">
+        <div class="phase-header-left">
+          <div class="phase-number todo-n">3</div>
+          <div>
+            <div class="phase-title">Custom Design Engine</div>
+            <div class="phase-dates">Week 3–4 &nbsp;·&nbsp; Jun 2 – Jun 13, 2026</div>
+          </div>
+        </div>
+        <div class="phase-badge todo">Upcoming</div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-goal">Build the visual QR editor. This is the biggest product differentiator — beautiful, branded QR codes in 60 seconds. Live preview updates as user tweaks settings.</div>
+        <div class="tasks-grid">
+          <div class="task todo-t"><div class="task-icon">🎨</div><div><div class="task-text">Foreground + background color pickers</div><div class="task-sub">Hex input + color wheel (react-colorful)</div></div></div>
+          <div class="task todo-t"><div class="task-icon">🖼️</div><div><div class="task-text">Logo upload + positioning</div><div class="task-sub">Supabase Storage for logo files</div></div></div>
+          <div class="task todo-t"><div class="task-icon">⬛</div><div><div class="task-text">Dot style presets (8 styles)</div><div class="task-sub">square, rounded, dots, classy, classy-rounded, extra-rounded</div></div></div>
+          <div class="task todo-t"><div class="task-icon">👁️</div><div><div class="task-text">Eye (corner) style presets</div><div class="task-sub">square, dot, extra-rounded variants</div></div></div>
+          <div class="task todo-t"><div class="task-icon">🖼️</div><div><div class="task-text">Frame templates (12 frames)</div><div class="task-sub">"Scan Me", arrow, border styles</div></div></div>
+          <div class="task todo-t"><div class="task-icon">⚡</div><div><div class="task-text">Live preview renderer</div><div class="task-sub">Canvas updates real-time as settings change</div></div></div>
+          <div class="task todo-t"><div class="task-icon">🎯</div><div><div class="task-text">Design preset library (20 presets)</div><div class="task-sub">One-click apply: minimal, bold, dark, branded</div></div></div>
+          <div class="task todo-t"><div class="task-icon">💾</div><div><div class="task-text">Save design settings to Supabase</div><div class="task-sub">Persist full style config per QR code</div></div></div>
+        </div>
+        <div class="phase-deliverable todo-d">🎯 Deliverable: Users can fully design a QR code — custom colors, logo, dot style, frame — with live preview. Design saves. Download produces the styled PNG/SVG.</div>
+      </div>
+    </div>
+
+    <!-- Phase 4 -->
+    <div class="phase">
+      <div class="phase-header">
+        <div class="phase-header-left">
+          <div class="phase-number todo-n">4</div>
+          <div>
+            <div class="phase-title">Dynamic QR Codes + Short URL Redirects</div>
+            <div class="phase-dates">Week 4–5 &nbsp;·&nbsp; Jun 9 – Jun 20, 2026</div>
+          </div>
+        </div>
+        <div class="phase-badge todo">Upcoming</div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-goal">Build the short-link infrastructure that makes QR codes editable without reprinting. Every dynamic QR points to qrcodee.online/r/[slug] which resolves to the real destination via Vercel edge middleware.</div>
+        <div class="tasks-grid">
+          <div class="task todo-t"><div class="task-icon">🔀</div><div><div class="task-text">Short URL slug generator</div><div class="task-sub">Nanoid 8-char slugs stored in Supabase</div></div></div>
+          <div class="task todo-t"><div class="task-icon">⚡</div><div><div class="task-text">Vercel edge middleware redirect</div><div class="task-sub">/r/[slug] → DB lookup → 302 redirect</div></div></div>
+          <div class="task todo-t"><div class="task-icon">✏️</div><div><div class="task-text">Edit destination URL flow</div><div class="task-sub">Update DB → same QR code, new destination</div></div></div>
+          <div class="task todo-t"><div class="task-icon">⏸️</div><div><div class="task-text">QR pause / resume</div><div class="task-sub">Paused QR shows "this code is inactive" page</div></div></div>
+          <div class="task todo-t"><div class="task-icon">🔗</div><div><div class="task-text">Custom short slug (Pro+)</div><div class="task-sub">User chooses /r/my-brand-name</div></div></div>
+          <div class="task todo-t"><div class="task-icon">📊</div><div><div class="task-text">Scan event capture on redirect</div><div class="task-sub">Log IP, user-agent, timestamp before redirect</div></div></div>
+          <div class="task todo-t"><div class="task-icon">📈</div><div><div class="task-text">Geo + device parsing</div><div class="task-sub">geoip-lite for location, ua-parser for device</div></div></div>
+          <div class="task todo-t"><div class="task-icon">🏠</div><div><div class="task-text">Inactive QR landing page</div><div class="task-sub">Branded "this QR is paused" message</div></div></div>
+        </div>
+        <div class="phase-deliverable todo-d">🎯 Deliverable: Dynamic QR codes fully functional. Scan events logged. User can edit destination, pause/resume. Custom slugs working for Pro users.</div>
+      </div>
+    </div>
+
+    <!-- Phase 5 -->
+    <div class="phase">
+      <div class="phase-header">
+        <div class="phase-header-left">
+          <div class="phase-number todo-n">5</div>
+          <div>
+            <div class="phase-title">Analytics Dashboard + Billing</div>
+            <div class="phase-dates">Week 5–7 &nbsp;·&nbsp; Jun 16 – Jul 4, 2026</div>
+          </div>
+        </div>
+        <div class="phase-badge todo">Upcoming</div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-goal">Build the analytics views that turn raw scan data into insights, then add Stripe billing with full plan enforcement. These two features together define the monetization engine.</div>
+        <div class="tasks-grid">
+          <div class="task todo-t"><div class="task-icon">📊</div><div><div class="task-text">Analytics dashboard UI</div><div class="task-sub">Total scans, top QRs, scan trend chart</div></div></div>
+          <div class="task todo-t"><div class="task-icon">📍</div><div><div class="task-text">Location analytics (city/country map)</div><div class="task-sub">Top scan locations by country + city</div></div></div>
+          <div class="task todo-t"><div class="task-icon">📱</div><div><div class="task-text">Device / OS / browser breakdown</div><div class="task-sub">iOS vs Android, Safari vs Chrome stats</div></div></div>
+          <div class="task todo-t"><div class="task-icon">📅</div><div><div class="task-text">Date range filter (7d / 30d / 90d / custom)</div><div class="task-sub">Respect plan limits (30d vs unlimited)</div></div></div>
+          <div class="task todo-t"><div class="task-icon">📤</div><div><div class="task-text">CSV analytics export (Pro+)</div><div class="task-sub">Download full scan log as CSV</div></div></div>
+          <div class="task todo-t"><div class="task-icon">💳</div><div><div class="task-text">Stripe Checkout + subscriptions</div><div class="task-sub">All 3 tiers, monthly + annual pricing</div></div></div>
+          <div class="task todo-t"><div class="task-icon">🔔</div><div><div class="task-text">Stripe webhooks → Supabase</div><div class="task-sub">payment_succeeded, subscription.deleted, etc.</div></div></div>
+          <div class="task todo-t"><div class="task-icon">🚧</div><div><div class="task-text">Plan limit enforcement</div><div class="task-sub">QR count, history depth, team seats gated by tier</div></div></div>
+          <div class="task todo-t"><div class="task-icon">⬆️</div><div><div class="task-text">Upgrade / downgrade UI</div><div class="task-sub">Proration handled by Stripe</div></div></div>
+          <div class="task todo-t"><div class="task-icon">🏦</div><div><div class="task-text">Stripe Customer Portal</div><div class="task-sub">Self-serve billing management</div></div></div>
+        </div>
+        <div class="phase-deliverable todo-d">🎯 Deliverable: Analytics dashboard live with location/device data. Full Stripe billing working — subscription, webhooks, plan gating, Customer Portal all functional.</div>
+      </div>
+    </div>
+
+    <!-- Phase 6 -->
+    <div class="phase">
+      <div class="phase-header">
+        <div class="phase-header-left">
+          <div class="phase-number todo-n">6</div>
+          <div>
+            <div class="phase-title">Bulk Generation, Email Templates & Beta Launch</div>
+            <div class="phase-dates">Week 7–8 &nbsp;·&nbsp; Jun 30 – Jul 14, 2026</div>
+          </div>
+        </div>
+        <div class="phase-badge todo">Upcoming</div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-goal">Ship bulk generation for Pro/Agency users, complete all Resend email templates, finalize the landing page, and open the beta to the first 20 paying customers.</div>
+        <div class="tasks-grid">
+          <div class="task todo-t"><div class="task-icon">📂</div><div><div class="task-text">CSV upload + bulk QR processor</div><div class="task-sub">500 rows → 500 custom QRs in background</div></div></div>
+          <div class="task todo-t"><div class="task-icon">📥</div><div><div class="task-text">ZIP download of bulk batch</div><div class="task-sub">jszip → stream ZIP to browser</div></div></div>
+          <div class="task todo-t"><div class="task-icon">📧</div><div><div class="task-text">Resend email templates (7 total)</div><div class="task-sub">Welcome, payment success, failed, digest, invite</div></div></div>
+          <div class="task todo-t"><div class="task-icon">🏠</div><div><div class="task-text">Landing page (marketing site)</div><div class="task-sub">Hero, features, pricing, FAQ, live demo QR</div></div></div>
+          <div class="task todo-t"><div class="task-icon">🔑</div><div><div class="task-text">API key generation (Pro+)</div><div class="task-sub">Generate, revoke, usage stats per key</div></div></div>
+          <div class="task todo-t"><div class="task-icon">🧪</div><div><div class="task-text">QA pass — all device types</div><div class="task-sub">iPhone, Android, desktop QR scan testing</div></div></div>
+          <div class="task todo-t"><div class="task-icon">🔍</div><div><div class="task-text">SEO: meta tags + sitemap + robots.txt</div><div class="task-sub">OG image, page titles, structured data</div></div></div>
+          <div class="task todo-t"><div class="task-icon">🚀</div><div><div class="task-text">Beta customer outreach (20 targets)</div><div class="task-sub">Personal network + LinkedIn DMs</div></div></div>
+        </div>
+        <div class="phase-deliverable active-d">🎯 LAUNCH: July 14, 2026. 20 beta customers. $820 MRR. All core features live. Stripe billing active. QRcodee.Online is open for business.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tech stack -->
+  <div class="section-label">Tech Stack</div>
+  <div class="stack-grid">
+    <div class="stack-item">
+      <div class="stack-name">Next.js 15</div>
+      <div class="stack-role">Full-stack framework, App Router, Edge middleware for redirects</div>
+      <div class="stack-cost" style="color:var(--success)">Free (open source)</div>
+    </div>
+    <div class="stack-item">
+      <div class="stack-name">Supabase</div>
+      <div class="stack-role">Auth, PostgreSQL database, file storage for QR logos</div>
+      <div class="stack-cost" style="color:var(--warn)">$25/mo (Pro)</div>
+    </div>
+    <div class="stack-item">
+      <div class="stack-name">Vercel</div>
+      <div class="stack-role">Hosting, CDN, serverless functions, edge middleware redirects</div>
+      <div class="stack-cost" style="color:var(--warn)">$20/mo (Pro)</div>
+    </div>
+    <div class="stack-item">
+      <div class="stack-name">Stripe</div>
+      <div class="stack-role">Subscriptions, Customer Portal, webhooks, billing</div>
+      <div class="stack-cost" style="color:var(--info)">2.9% + $0.30/txn</div>
+    </div>
+    <div class="stack-item">
+      <div class="stack-name">Resend</div>
+      <div class="stack-role">Transactional email — welcome, billing, analytics digests</div>
+      <div class="stack-cost" style="color:var(--warn)">$20/mo (Pro)</div>
+    </div>
+    <div class="stack-item">
+      <div class="stack-name">qr-code-styling</div>
+      <div class="stack-role">QR generation — colors, logos, dot styles (open source)</div>
+      <div class="stack-cost" style="color:var(--success)">Free (MIT)</div>
+    </div>
+    <div class="stack-item">
+      <div class="stack-name">Tailwind CSS 4</div>
+      <div class="stack-role">Styling — matches entire Boom Media product suite</div>
+      <div class="stack-cost" style="color:var(--success)">Free (open source)</div>
+    </div>
+    <div class="stack-item">
+      <div class="stack-name">Anthropic SDK</div>
+      <div class="stack-role">AI design suggestions, QR campaign copy generator (Pro+)</div>
+      <div class="stack-cost" style="color:var(--info)">~$5/mo at 100 customers</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

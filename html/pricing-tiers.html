@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QRcodee — Pricing Tiers</title>
+<style>
+  :root {
+    --qr: #0891b2; --qr-hover: #22d3ee; --qr-dim: #0e7490;
+    --bg: #060d12; --surface: #0a1520; --surface2: #0f1e2c;
+    --border: #152a3a; --border2: #1e3d52;
+    --text: #e0f2f8; --muted: #2d6070; --muted2: #4d8090;
+    --success: #4ADE80; --warn: #f59e0b; --info: #38bdf8;
+    --starter: #34D399; --pro: #0891b2; --agency: #f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; font-size: 13px; min-height: 100vh; }
+
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo span { color: var(--qr); }
+  .header-meta { color: var(--muted); font-size: 11px; }
+
+  .wrapper { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+  .page-title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .page-sub { color: var(--muted2); font-size: 12px; margin-bottom: 28px; }
+  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 12px; }
+
+  /* Tier cards */
+  .tier-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; margin-bottom: 36px; }
+  .tier-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .tier-card.popular { border-color: rgba(8,145,178,0.5); box-shadow: 0 0 0 1px rgba(8,145,178,0.2), 0 8px 32px rgba(8,145,178,0.1); }
+  .tier-header { padding: 20px; border-bottom: 1px solid var(--border); }
+  .tier-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 10px; }
+  .tier-badge.free-b { background: rgba(96,165,250,0.12); color: var(--info); border: 1px solid rgba(96,165,250,0.2); }
+  .tier-badge.starter-b { background: rgba(52,211,153,0.12); color: var(--starter); border: 1px solid rgba(52,211,153,0.2); }
+  .tier-badge.pro-b { background: rgba(8,145,178,0.15); color: var(--pro); border: 1px solid rgba(8,145,178,0.3); }
+  .tier-badge.popular-b { background: rgba(8,145,178,0.2); color: var(--qr-hover); border: 1px solid rgba(8,145,178,0.4); }
+  .tier-badge.agency-b { background: rgba(245,158,11,0.12); color: var(--agency); border: 1px solid rgba(245,158,11,0.2); }
+  .tier-name { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+  .tier-tagline { font-size: 11px; color: var(--muted2); line-height: 1.4; }
+  .tier-price { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .price-amount { font-size: 36px; font-weight: 900; letter-spacing: -1.5px; line-height: 1; }
+  .price-period { font-size: 12px; color: var(--muted2); }
+  .price-annual { font-size: 11px; color: var(--success); margin-top: 4px; }
+  .price-free-note { font-size: 11px; color: var(--muted2); margin-top: 4px; }
+  .tier-features { padding: 16px 20px; }
+  .feature-group { margin-bottom: 14px; }
+  .feature-group-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 8px; }
+  .feature-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 7px; font-size: 12px; }
+  .feature-check { color: var(--success); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .feature-cross { color: var(--muted); flex-shrink: 0; margin-top: 1px; }
+  .feature-dash { color: var(--warn); flex-shrink: 0; margin-top: 1px; }
+  .feature-text { color: var(--text); line-height: 1.4; }
+  .feature-sub { font-size: 10px; color: var(--muted2); }
+  .tier-cta { padding: 16px 20px; border-top: 1px solid var(--border); }
+  .cta-btn { display: block; width: 100%; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 700; text-align: center; cursor: pointer; border: none; }
+  .cta-free { background: var(--surface2); color: var(--muted2); border: 1px solid var(--border2); }
+  .cta-starter { background: rgba(52,211,153,0.15); color: var(--starter); border: 1px solid rgba(52,211,153,0.3); }
+  .cta-pro { background: var(--qr); color: #fff; }
+  .cta-agency { background: rgba(245,158,11,0.15); color: var(--agency); border: 1px solid rgba(245,158,11,0.3); }
+  .popular-label { background: var(--qr); color: #fff; text-align: center; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; padding: 5px; }
+
+  /* Feature comparison table */
+  .compare-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 28px; }
+  .compare-table { width: 100%; border-collapse: collapse; }
+  .compare-table thead { background: var(--surface2); }
+  .compare-table th { padding: 12px 14px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); text-align: center; }
+  .compare-table th:first-child { text-align: left; width: 35%; }
+  .compare-table th.starter-h { color: var(--starter); }
+  .compare-table th.pro-h { color: var(--pro); }
+  .compare-table th.agency-h { color: var(--agency); }
+  .compare-table td { padding: 10px 14px; border-top: 1px solid var(--border); font-size: 12px; text-align: center; vertical-align: middle; }
+  .compare-table td:first-child { text-align: left; }
+  .compare-table tr.group-header td { background: var(--surface2); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); padding: 7px 14px; }
+  .compare-table tr:hover td { background: rgba(8,145,178,0.02); }
+  .check { color: var(--success); font-weight: 700; font-size: 14px; }
+  .cross { color: var(--muted); font-size: 12px; }
+  .val-text { font-size: 11px; font-weight: 600; }
+  .val-pro { color: var(--pro); font-weight: 700; }
+  .val-agency { color: var(--agency); font-weight: 700; }
+
+  /* Competitor comparison */
+  .vs-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 28px; }
+  .vs-table { width: 100%; border-collapse: collapse; }
+  .vs-table th { padding: 10px 14px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); background: var(--surface2); }
+  .vs-table th.ours { color: var(--qr); }
+  .vs-table td { padding: 9px 14px; border-top: 1px solid var(--border); font-size: 12px; }
+  .vs-table tr:hover td { background: rgba(8,145,178,0.02); }
+  .price-tag { font-weight: 800; }
+  .better { color: var(--success); font-size: 11px; }
+  .worse { color: #FF6B6B; font-size: 11px; }
+  .neutral { color: var(--muted2); font-size: 11px; }
+
+  /* Revenue math */
+  .rev-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
+  .rev-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .rev-card-name { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 12px; }
+  .rev-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+  .rev-row label { color: var(--muted2); }
+  .rev-divider { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
+  .rev-total { font-size: 18px; font-weight: 800; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">QRcode<span>e</span></div>
+  <div class="header-meta">Pricing Tiers &nbsp;·&nbsp; Plans & Feature Matrix &nbsp;·&nbsp; May 2026</div>
+</div>
+
+<div class="wrapper">
+  <div class="page-title">Pricing Tiers</div>
+  <div class="page-sub">Four tiers from free to full agency white-label. Positioned above QRCodeChimp on value, below enterprise alternatives on price. Annual plans save 15%.</div>
+
+  <!-- Tier cards -->
+  <div class="section-label">Plan Overview</div>
+  <div class="tier-grid">
+
+    <!-- Free -->
+    <div class="tier-card">
+      <div class="tier-header">
+        <div class="tier-badge free-b">Free</div>
+        <div class="tier-name">Free</div>
+        <div class="tier-tagline">Try it out. No credit card. No time limit.</div>
+      </div>
+      <div class="tier-price">
+        <div class="price-amount" style="color:var(--info)">$0</div>
+        <div class="price-period">forever free</div>
+        <div class="price-free-note">3 dynamic QR codes · 7-day scan history</div>
+      </div>
+      <div class="tier-features">
+        <div class="feature-group">
+          <div class="feature-group-label">QR Generation</div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">3 dynamic QR codes <div class="feature-sub">URL, vCard, WiFi types</div></div></div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">Custom colors & logo <div class="feature-sub">Basic design editor</div></div></div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">PNG download</div></div>
+          <div class="feature-item"><div class="feature-cross">—</div><div class="feature-text" style="color:var(--muted)">SVG / PDF export</div></div>
+        </div>
+        <div class="feature-group">
+          <div class="feature-group-label">Analytics</div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">Scan count <div class="feature-sub">7-day history only</div></div></div>
+          <div class="feature-item"><div class="feature-cross">—</div><div class="feature-text" style="color:var(--muted)">Location & device data</div></div>
+        </div>
+        <div class="feature-group">
+          <div class="feature-group-label">Platform</div>
+          <div class="feature-item"><div class="feature-cross">—</div><div class="feature-text" style="color:var(--muted)">Bulk generation</div></div>
+          <div class="feature-item"><div class="feature-cross">—</div><div class="feature-text" style="color:var(--muted)">API access</div></div>
+          <div class="feature-item"><div class="feature-cross">—</div><div class="feature-text" style="color:var(--muted)">Team members</div></div>
+        </div>
+      </div>
+      <div class="tier-cta"><button class="cta-btn cta-free">Get Started Free</button></div>
+    </div>
+
+    <!-- Starter -->
+    <div class="tier-card">
+      <div class="tier-header">
+        <div class="tier-badge starter-b">Starter</div>
+        <div class="tier-name" style="color:var(--starter)">Starter</div>
+        <div class="tier-tagline">For small businesses running QR campaigns.</div>
+      </div>
+      <div class="tier-price">
+        <div class="price-amount" style="color:var(--starter)">$19</div>
+        <div class="price-period">per month</div>
+        <div class="price-annual">$193/yr — save $35 (15% off)</div>
+      </div>
+      <div class="tier-features">
+        <div class="feature-group">
+          <div class="feature-group-label">QR Generation</div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">100 dynamic QR codes<div class="feature-sub">All 12 QR types</div></div></div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">Full design editor<div class="feature-sub">Colors, logos, dot styles, frames</div></div></div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">PNG + SVG download</div></div>
+          <div class="feature-item"><div class="feature-cross">—</div><div class="feature-text" style="color:var(--muted)">PDF export</div></div>
+        </div>
+        <div class="feature-group">
+          <div class="feature-group-label">Analytics</div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">Full scan analytics<div class="feature-sub">30-day history, location + device</div></div></div>
+          <div class="feature-item"><div class="feature-cross">—</div><div class="feature-text" style="color:var(--muted)">CSV export</div></div>
+        </div>
+        <div class="feature-group">
+          <div class="feature-group-label">Platform</div>
+          <div class="feature-item"><div class="feature-cross">—</div><div class="feature-text" style="color:var(--muted)">Bulk generation</div></div>
+          <div class="feature-item"><div class="feature-cross">—</div><div class="feature-text" style="color:var(--muted)">API access</div></div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">1 team seat</div></div>
+        </div>
+      </div>
+      <div class="tier-cta"><button class="cta-btn cta-starter">Start Starter Plan</button></div>
+    </div>
+
+    <!-- Pro (Popular) -->
+    <div class="tier-card popular">
+      <div class="popular-label">Most Popular</div>
+      <div class="tier-header">
+        <div class="tier-badge popular-b">Pro</div>
+        <div class="tier-name" style="color:var(--qr-hover)">Pro</div>
+        <div class="tier-tagline">For marketers, agencies, and power users.</div>
+      </div>
+      <div class="tier-price">
+        <div class="price-amount" style="color:var(--qr-hover)">$49</div>
+        <div class="price-period">per month</div>
+        <div class="price-annual">$499/yr — save $89 (15% off)</div>
+      </div>
+      <div class="tier-features">
+        <div class="feature-group">
+          <div class="feature-group-label">QR Generation</div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">Unlimited dynamic QR codes<div class="feature-sub">All 12 QR types + custom domain</div></div></div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">Full design editor + AI suggestions<div class="feature-sub">AI-recommended color combos</div></div></div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">PNG + SVG + PDF download</div></div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">5 custom short domains</div></div>
+        </div>
+        <div class="feature-group">
+          <div class="feature-group-label">Analytics</div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">Full analytics — unlimited history<div class="feature-sub">Location, device, OS, browser</div></div></div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">CSV export + weekly digest email</div></div>
+        </div>
+        <div class="feature-group">
+          <div class="feature-group-label">Platform</div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">Bulk generation — 500/batch<div class="feature-sub">CSV upload → ZIP download</div></div></div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">API access + webhooks<div class="feature-sub">Full REST API, API key mgmt</div></div></div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">3 team seats</div></div>
+        </div>
+      </div>
+      <div class="tier-cta"><button class="cta-btn cta-pro">Start Pro Plan</button></div>
+    </div>
+
+    <!-- Agency -->
+    <div class="tier-card">
+      <div class="tier-header">
+        <div class="tier-badge agency-b">Agency</div>
+        <div class="tier-name" style="color:var(--agency)">Agency</div>
+        <div class="tier-tagline">White-label platform for client management.</div>
+      </div>
+      <div class="tier-price">
+        <div class="price-amount" style="color:var(--agency)">$149</div>
+        <div class="price-period">per month</div>
+        <div class="price-annual">$1,519/yr — save $269 (15% off)</div>
+      </div>
+      <div class="tier-features">
+        <div class="feature-group">
+          <div class="feature-group-label">QR Generation</div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">Unlimited QR codes<div class="feature-sub">All Pro features included</div></div></div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">Unlimited custom short domains</div></div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">White-label QR branding<div class="feature-sub">Remove QRcodee branding entirely</div></div></div>
+        </div>
+        <div class="feature-group">
+          <div class="feature-group-label">Analytics</div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">Client analytics dashboards<div class="feature-sub">Shareable reports per client</div></div></div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">Scheduled report emails to clients</div></div>
+        </div>
+        <div class="feature-group">
+          <div class="feature-group-label">Platform</div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">Unlimited bulk generation<div class="feature-sub">No batch size limit</div></div></div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">Client workspace management<div class="feature-sub">Separate folders per client</div></div></div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">10 team seats + client access</div></div>
+          <div class="feature-item"><div class="feature-check">✓</div><div class="feature-text">Priority support (4hr response)</div></div>
+        </div>
+      </div>
+      <div class="tier-cta"><button class="cta-btn cta-agency">Start Agency Plan</button></div>
+    </div>
+
+  </div>
+
+  <!-- Full feature comparison table -->
+  <div class="section-label">Feature Comparison Matrix</div>
+  <div class="compare-wrap">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Free</th>
+          <th class="starter-h">Starter $19</th>
+          <th class="pro-h">Pro $49</th>
+          <th class="agency-h">Agency $149</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="group-header"><td colspan="5">▸ QR Code Generation</td></tr>
+        <tr><td>Dynamic QR codes</td><td><span class="val-text">3 codes</span></td><td><span class="val-text">100 codes</span></td><td><span class="val-text" style="color:var(--pro)">Unlimited</span></td><td><span class="val-text" style="color:var(--agency)">Unlimited</span></td></tr>
+        <tr><td>QR types (URL, vCard, WiFi, Email, SMS, etc.)</td><td><span class="val-text">3 types</span></td><td><span class="check">✓</span> 12 types</td><td><span class="check">✓</span> 12 types</td><td><span class="check">✓</span> 12 types</td></tr>
+        <tr><td>Custom colors + background</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>Logo overlay</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>Dot style presets (8 styles)</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>Frame templates (12 frames)</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>AI design suggestions</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>Design presets library (20 presets)</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        <tr class="group-header"><td colspan="5">▸ Export Formats</td></tr>
+        <tr><td>PNG download</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>SVG download</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>PDF download</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        <tr class="group-header"><td colspan="5">▸ Analytics & Tracking</td></tr>
+        <tr><td>Scan count tracking</td><td><span class="val-text">7-day history</span></td><td><span class="val-text">30-day history</span></td><td><span class="val-pro">Unlimited history</span></td><td><span class="val-agency">Unlimited history</span></td></tr>
+        <tr><td>Location data (city/country)</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>Device / OS / browser data</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>CSV analytics export</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>Weekly digest email</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>Client-shareable reports</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td></tr>
+        <tr class="group-header"><td colspan="5">▸ Dynamic QR & Short URLs</td></tr>
+        <tr><td>Edit QR destination (no reprint)</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>Custom short URL slug</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>Custom short domains</td><td><span class="cross">—</span></td><td><span class="val-text">1 domain</span></td><td><span class="val-pro">5 domains</span></td><td><span class="val-agency">Unlimited</span></td></tr>
+        <tr><td>QR pause / resume</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        <tr class="group-header"><td colspan="5">▸ Bulk & API</td></tr>
+        <tr><td>Bulk generation (CSV → ZIP)</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="val-pro">500/batch</span></td><td><span class="val-agency">Unlimited</span></td></tr>
+        <tr><td>REST API access</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>Webhooks</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>API rate limit</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="val-pro">1,000 req/hr</span></td><td><span class="val-agency">10,000 req/hr</span></td></tr>
+        <tr class="group-header"><td colspan="5">▸ Team & White-Label</td></tr>
+        <tr><td>Team seats</td><td><span class="val-text">1 (owner only)</span></td><td><span class="val-text">1 seat</span></td><td><span class="val-pro">3 seats</span></td><td><span class="val-agency">10 seats</span></td></tr>
+        <tr><td>Folder / campaign organization</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>White-label QR codes</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>Client workspace management</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>Scheduled reports to clients</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td></tr>
+        <tr><td>Priority support</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span> 4hr response</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Revenue math per tier mix -->
+  <div class="section-label">Revenue Math — Tier Mix at 100 Customers</div>
+  <div class="rev-grid">
+    <div class="rev-card">
+      <div class="rev-card-name" style="color:var(--starter)">Starter Mix — 60 Customers</div>
+      <div class="rev-row"><label>Customers</label><span>60</span></div>
+      <div class="rev-row"><label>Monthly price</label><span>$19/mo</span></div>
+      <div class="rev-row"><label>Gross MRR contribution</label><span style="color:var(--starter)">$1,140</span></div>
+      <div class="rev-row"><label>Stripe fees</label><span style="color:#FF6B6B">−$84.96</span></div>
+      <div class="rev-divider"></div>
+      <div class="rev-row"><label>Net contribution</label><div class="rev-total" style="color:var(--starter)">$1,055</div></div>
+    </div>
+    <div class="rev-card">
+      <div class="rev-card-name" style="color:var(--pro)">Pro Mix — 30 Customers</div>
+      <div class="rev-row"><label>Customers</label><span>30</span></div>
+      <div class="rev-row"><label>Monthly price</label><span>$49/mo</span></div>
+      <div class="rev-row"><label>Gross MRR contribution</label><span style="color:var(--pro)">$1,470</span></div>
+      <div class="rev-row"><label>Stripe fees</label><span style="color:#FF6B6B">−$51.63</span></div>
+      <div class="rev-divider"></div>
+      <div class="rev-row"><label>Net contribution</label><div class="rev-total" style="color:var(--pro)">$1,418</div></div>
+    </div>
+    <div class="rev-card">
+      <div class="rev-card-name" style="color:var(--agency)">Agency Mix — 10 Customers</div>
+      <div class="rev-row"><label>Customers</label><span>10</span></div>
+      <div class="rev-row"><label>Monthly price</label><span>$149/mo</span></div>
+      <div class="rev-row"><label>Gross MRR contribution</label><span style="color:var(--agency)">$1,490</span></div>
+      <div class="rev-row"><label>Stripe fees</label><span style="color:#FF6B6B">−$46.21</span></div>
+      <div class="rev-divider"></div>
+      <div class="rev-row"><label>Net contribution</label><div class="rev-total" style="color:var(--agency)">$1,444</div></div>
+    </div>
+  </div>
+
+  <!-- Competitor pricing comparison -->
+  <div class="section-label">Competitive Pricing Landscape</div>
+  <div class="vs-wrap">
+    <table class="vs-table">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Entry Plan</th>
+          <th>Mid Plan</th>
+          <th>Top Plan</th>
+          <th>API Access</th>
+          <th>White Label</th>
+          <th>Bulk Gen</th>
+          <th>Assessment</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:700;color:var(--qr)">QRcodee.Online ★</td>
+          <td><span class="price-tag" style="color:var(--starter)">$19</span></td>
+          <td><span class="price-tag" style="color:var(--pro)">$49</span></td>
+          <td><span class="price-tag" style="color:var(--agency)">$149</span></td>
+          <td><span style="color:var(--success)">✓ Pro+</span></td>
+          <td><span style="color:var(--success)">✓ Agency</span></td>
+          <td><span style="color:var(--success)">✓ Pro+</span></td>
+          <td><span class="better">Our product — best value</span></td>
+        </tr>
+        <tr>
+          <td>QRCodeChimp</td>
+          <td><span class="price-tag">$9.99</span></td>
+          <td><span class="price-tag">$29.99</span></td>
+          <td><span class="price-tag">$79.99</span></td>
+          <td><span style="color:#FF6B6B">Enterprise only</span></td>
+          <td><span style="color:#FF6B6B">No</span></td>
+          <td><span style="color:var(--warn)">Limited</span></td>
+          <td><span class="neutral">Cheaper entry, worse features</span></td>
+        </tr>
+        <tr>
+          <td>Beaconstac</td>
+          <td><span class="price-tag">$15</span></td>
+          <td><span class="price-tag">$49</span></td>
+          <td><span class="price-tag">$199</span></td>
+          <td><span style="color:var(--success)">✓</span></td>
+          <td><span style="color:var(--success)">✓</span></td>
+          <td><span style="color:var(--success)">✓</span></td>
+          <td><span class="neutral">Similar but dated UI</span></td>
+        </tr>
+        <tr>
+          <td>Bitly QR</td>
+          <td><span class="price-tag">$8</span></td>
+          <td><span class="price-tag">$29</span></td>
+          <td><span class="price-tag">$199</span></td>
+          <td><span style="color:var(--success)">✓</span></td>
+          <td><span style="color:#FF6B6B">No</span></td>
+          <td><span style="color:#FF6B6B">No</span></td>
+          <td><span class="neutral">Link mgmt first, QR is secondary</span></td>
+        </tr>
+        <tr>
+          <td>QR Tiger</td>
+          <td><span class="price-tag">$7</span></td>
+          <td><span class="price-tag">$16</span></td>
+          <td><span class="price-tag">$35</span></td>
+          <td><span style="color:var(--warn)">Add-on</span></td>
+          <td><span style="color:var(--warn)">Add-on</span></td>
+          <td><span style="color:var(--success)">✓</span></td>
+          <td><span class="worse">Very cheap, minimal analytics</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>
