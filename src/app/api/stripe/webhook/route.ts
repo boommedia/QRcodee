@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe/client'
 import { createServiceClient } from '@/lib/supabase/server'
+import { sendBillingConfirmationEmail } from '@/lib/email'
 import Stripe from 'stripe'
 
 const PRICE_TO_PLAN: Record<string, string> = {
@@ -60,6 +61,18 @@ export async function POST(request: NextRequest) {
           trial_end: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
         })
         .eq('user_id', userId)
+
+      // Send billing confirmation for new paid subscriptions
+      if (event.type === 'customer.subscription.created' && plan !== 'free') {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email, full_name')
+          .eq('id', userId)
+          .single()
+        if (profile?.email) {
+          void sendBillingConfirmationEmail(profile.email, profile.full_name || '', plan)
+        }
+      }
       break
     }
 
