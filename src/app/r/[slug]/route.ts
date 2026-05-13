@@ -58,7 +58,7 @@ export async function GET(
   const cfCity = headersList.get('cf-ipcity') || ''
   const { device, os, browser } = detectDevice(userAgent)
 
-  supabase
+  void supabase
     .from('scans')
     .insert({
       qr_id: qr.id,
@@ -70,8 +70,6 @@ export async function GET(
       os,
       browser,
     })
-    .then(() => {})
-    .catch(() => {})
 
   // App Store smart redirect — send iOS to App Store, Android to Play Store
   if (qr.type === 'app_store' && qr.qr_data) {
