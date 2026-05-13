@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  transpilePackages: ['qr-code-styling'],
 }
 
 export default nextConfig
