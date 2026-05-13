@@ -147,6 +147,13 @@ const FAQS = [
   },
 ]
 
+const TECH_CHIPS = [
+  { label: 'Dynamic QR', sub: 'Core feature' },
+  { label: 'Real-time Analytics', sub: 'Every scan logged' },
+  { label: 'Custom Design', sub: 'Your brand' },
+  { label: '11 QR Types', sub: 'Built in' },
+]
+
 function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false)
   return (
@@ -172,19 +179,36 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 
 export default function HomePage() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [bannerOpen, setBannerOpen] = useState(true)
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
-      <div className="h-0.5 w-full bg-gradient-to-r from-[var(--qr)] via-[var(--qr-hover)] to-[var(--warn)]" />
+
+      {/* Announcement bar */}
+      {bannerOpen && (
+        <div className="relative flex items-center justify-center gap-3 px-6 py-2.5 text-xs" style={{ background: 'rgba(8,145,178,0.12)', borderBottom: '1px solid rgba(8,145,178,0.2)' }}>
+          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: '#22d3ee' }} />
+          <span style={{ color: '#94c4d0' }}>
+            QRcodee Beta — Free plan + 3 QR codes forever · No credit card required
+          </span>
+          <Link href="/signup" className="hidden sm:inline font-semibold transition-colors hover:underline" style={{ color: '#22d3ee' }}>
+            Get started free →
+          </Link>
+          <button
+            onClick={() => setBannerOpen(false)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-80 transition-opacity text-[var(--text)]"
+          >✕</button>
+        </div>
+      )}
 
       {/* Nav */}
       <nav className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between relative">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[var(--qr)] flex items-center justify-center">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-lg" style={{ background: '#0891b2', boxShadow: '0 0 16px rgba(8,145,178,0.4)' }}>
             <span className="text-white text-xs font-bold">QR</span>
           </div>
           <span className="font-bold text-[var(--text)]">QRcodee</span>
-          <span className="text-[10px] font-semibold bg-[var(--qr)]/10 text-[var(--qr)] border border-[var(--qr)]/20 rounded px-1.5 py-0.5 ml-1">BETA</span>
+          <span className="hidden sm:inline text-xs text-[var(--muted)]">by Boom Media</span>
         </div>
 
         {/* Desktop nav */}
@@ -197,7 +221,7 @@ export default function HomePage() {
         </div>
         <div className="hidden md:flex items-center gap-3">
           <Link href="/login" className="text-sm text-[var(--muted2)] hover:text-[var(--text)] transition-colors font-medium">Log in</Link>
-          <Link href="/signup" className="rounded-xl bg-[var(--qr)] hover:bg-[var(--qr-dim)] text-white text-sm font-semibold px-4 py-2 transition-all shadow-lg shadow-[var(--qr)]/20">
+          <Link href="/signup" className="rounded-xl text-white text-sm font-bold px-5 py-2.5 transition-all" style={{ background: '#0891b2', boxShadow: '0 4px 20px rgba(8,145,178,0.35)' }}>
             Start Free
           </Link>
         </div>
@@ -240,7 +264,7 @@ export default function HomePage() {
               <Link href="/login" onClick={() => setMobileNavOpen(false)} className="flex-1 text-center rounded-xl border border-[var(--border)] py-2.5 text-sm font-semibold text-[var(--muted2)] hover:text-[var(--text)] transition-colors">
                 Log In
               </Link>
-              <Link href="/signup" onClick={() => setMobileNavOpen(false)} className="flex-1 text-center rounded-xl bg-[var(--qr)] py-2.5 text-sm font-bold text-white">
+              <Link href="/signup" onClick={() => setMobileNavOpen(false)} className="flex-1 text-center rounded-xl py-2.5 text-sm font-bold text-white" style={{ background: '#0891b2' }}>
                 Start Free
               </Link>
             </div>
@@ -250,34 +274,48 @@ export default function HomePage() {
 
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-6 pt-16 pb-20 text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--qr)]/30 bg-[var(--qr)]/5 px-4 py-1.5 text-xs text-[var(--qr)] font-medium mb-6">
-          <span className="w-1.5 h-1.5 rounded-full bg-[var(--qr)] animate-pulse" />
+        <div className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-medium mb-8" style={{ borderColor: 'rgba(8,145,178,0.35)', background: 'rgba(8,145,178,0.08)', color: '#22d3ee' }}>
+          <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#22d3ee' }} />
           Now live — switch from QRCodeChimp in minutes
         </div>
-        <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
+
+        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1] mb-8">
           One Dashboard.<br />
-          <span style={{ background: 'linear-gradient(135deg, var(--qr), var(--qr-hover))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          <span style={{ background: 'linear-gradient(135deg, #0891b2, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
             Every QR Code.
-          </span>
-          <br />Done.
+          </span><br />
+          Done.
         </h1>
+
         <p className="text-lg text-[var(--muted2)] max-w-2xl mx-auto mb-10 leading-relaxed">
           Dynamic QR codes with real-time scan analytics, custom design, and zero per-code fees.
           Built for businesses that need more than a free QR generator.
         </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-          <Link href="/signup" className="rounded-xl bg-[var(--qr)] hover:bg-[var(--qr-dim)] text-white text-base font-bold px-8 py-4 transition-all shadow-xl shadow-[var(--qr)]/25 hover:shadow-[var(--qr)]/40 w-full sm:w-auto">
-            Create Free Account →
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
+          <Link href="/signup" className="rounded-xl text-white text-base font-bold px-8 py-4 transition-all w-full sm:w-auto" style={{ background: '#0891b2', boxShadow: '0 8px 32px rgba(8,145,178,0.4)' }}>
+            Start Free — No Card Required →
           </Link>
-          <a href="#features" className="rounded-xl border border-[var(--border)] text-[var(--muted2)] hover:text-[var(--text)] hover:border-[var(--qr)]/40 text-base font-medium px-8 py-4 transition-all w-full sm:w-auto text-center">
+          <a href="#features" className="rounded-xl border border-[var(--border)] text-[var(--muted2)] hover:text-[var(--text)] hover:border-[var(--border2)] text-base font-medium px-8 py-4 transition-all w-full sm:w-auto text-center">
             See Features
           </a>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-xs text-[var(--muted2)]">
+
+        <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-xs text-[var(--muted2)] mb-14">
           <span>✓ Free forever plan</span>
           <span>✓ No credit card required</span>
           <span>✓ Cancel anytime</span>
           <span>✓ $0 QR generation cost</span>
+        </div>
+
+        {/* Tech chips */}
+        <div className="flex flex-wrap justify-center gap-3">
+          {TECH_CHIPS.map(chip => (
+            <div key={chip.label} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-5 py-3 text-center min-w-[130px]">
+              <p className="text-sm font-semibold text-[var(--text)]">{chip.label}</p>
+              <p className="text-[11px] text-[var(--muted2)] mt-0.5">{chip.sub}</p>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -302,7 +340,7 @@ export default function HomePage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {FEATURES.map(f => (
-            <div key={f.title} className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 hover:border-[var(--qr)]/40 transition-all">
+            <div key={f.title} className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 hover:border-[var(--border2)] transition-all">
               <div className="text-3xl mb-4">{f.icon}</div>
               <h3 className="font-semibold text-[var(--text)] mb-2">{f.title}</h3>
               <p className="text-sm text-[var(--muted2)] leading-relaxed">{f.desc}</p>
@@ -322,13 +360,13 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {USE_CASES.map(uc => (
-              <div key={uc.title} className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-6 hover:border-[var(--qr)]/40 transition-all">
+              <div key={uc.title} className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-6 hover:border-[var(--border2)] transition-all">
                 <div className="text-3xl mb-4">{uc.icon}</div>
                 <h3 className="font-semibold text-[var(--text)] mb-2">{uc.title}</h3>
                 <p className="text-sm text-[var(--muted2)] leading-relaxed mb-4">{uc.desc}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {uc.tags.map(tag => (
-                    <span key={tag} className="text-[10px] font-semibold px-2 py-1 rounded-lg" style={{ background: 'var(--qr)15', color: 'var(--qr)' }}>
+                    <span key={tag} className="text-[10px] font-semibold px-2 py-1 rounded-lg" style={{ background: 'rgba(8,145,178,0.12)', color: '#22d3ee' }}>
                       {tag}
                     </span>
                   ))}
@@ -352,7 +390,7 @@ export default function HomePage() {
               <strong className="text-[var(--text)]">Zero reprinting required.</strong>
             </p>
           </div>
-          <Link href="/signup" className="shrink-0 rounded-xl bg-[var(--qr)] hover:bg-[var(--qr-dim)] text-white text-sm font-bold px-6 py-3 transition-all whitespace-nowrap">
+          <Link href="/signup" className="shrink-0 rounded-xl text-white text-sm font-bold px-6 py-3 transition-all whitespace-nowrap" style={{ background: '#0891b2' }}>
             Migrate Free →
           </Link>
         </div>
@@ -368,10 +406,10 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
             {PLANS.map(plan => (
               <div key={plan.name}
-                className={`rounded-2xl border p-6 flex flex-col relative transition-all ${plan.highlight ? 'border-[var(--qr)] shadow-xl shadow-[var(--qr)]/15' : 'border-[var(--border)] bg-[var(--bg)]'}`}
-                style={plan.highlight ? { background: 'rgba(8,145,178,0.05)' } : undefined}>
+                className={`rounded-2xl border p-6 flex flex-col relative transition-all ${plan.highlight ? 'border-[var(--qr)]' : 'border-[var(--border)] bg-[var(--bg)]'}`}
+                style={plan.highlight ? { background: 'rgba(8,145,178,0.06)', boxShadow: '0 0 40px rgba(8,145,178,0.12)' } : undefined}>
                 {plan.highlight && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[var(--qr)] text-white text-[10px] font-bold px-3 py-1 whitespace-nowrap">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full text-white text-[10px] font-bold px-3 py-1 whitespace-nowrap" style={{ background: '#0891b2' }}>
                     MOST POPULAR
                   </div>
                 )}
@@ -391,7 +429,8 @@ export default function HomePage() {
                   ))}
                 </ul>
                 <Link href={plan.href}
-                  className={`block w-full text-center rounded-xl text-sm font-bold py-2.5 transition-all ${plan.highlight ? 'bg-[var(--qr)] hover:bg-[var(--qr-dim)] text-white shadow-lg shadow-[var(--qr)]/20' : 'border border-[var(--border)] hover:border-[var(--qr)] text-[var(--text)] hover:text-[var(--qr)]'}`}>
+                  className={`block w-full text-center rounded-xl text-sm font-bold py-2.5 transition-all ${plan.highlight ? 'text-white' : 'border border-[var(--border)] hover:border-[var(--border2)] text-[var(--text)]'}`}
+                  style={plan.highlight ? { background: '#0891b2', boxShadow: '0 4px 16px rgba(8,145,178,0.3)' } : undefined}>
                   {plan.cta}
                 </Link>
               </div>
@@ -414,7 +453,7 @@ export default function HomePage() {
         </div>
         <p className="text-center text-sm text-[var(--muted2)] mt-8">
           Still have questions?{' '}
-          <a href="mailto:hello@qrcodee.online" className="text-[var(--qr)] hover:text-[var(--qr-hover)] transition-colors">
+          <a href="mailto:hello@qrcodee.online" className="hover:underline transition-colors" style={{ color: '#22d3ee' }}>
             Email us →
           </a>
         </p>
@@ -423,11 +462,12 @@ export default function HomePage() {
       {/* Final CTA */}
       <section className="border-t border-[var(--border)] py-20">
         <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-[var(--text)] mb-4">Ready to own your QR codes?</h2>
-          <p className="text-[var(--muted2)] mb-8">Free forever. No credit card. Your first 3 QR codes are on us.</p>
-          <Link href="/signup" className="inline-flex items-center gap-2 rounded-xl bg-[var(--qr)] hover:bg-[var(--qr-dim)] text-white text-lg font-bold px-10 py-4 transition-all shadow-xl shadow-[var(--qr)]/25">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-[var(--text)] mb-4">Ready to own your QR codes?</h2>
+          <p className="text-[var(--muted2)] mb-10 text-lg">Free forever. No credit card. Your first 3 QR codes are on us.</p>
+          <Link href="/signup" className="inline-flex items-center gap-2 rounded-xl text-white text-lg font-bold px-10 py-4 transition-all" style={{ background: '#0891b2', boxShadow: '0 8px 40px rgba(8,145,178,0.4)' }}>
             Create Your Free Account →
           </Link>
+          <p className="mt-4 text-xs text-[var(--muted2)]">No credit card · Cancel anytime · Free forever plan</p>
         </div>
       </section>
 
@@ -435,10 +475,9 @@ export default function HomePage() {
       <footer className="border-t border-[var(--border)] bg-[var(--surface)] py-12">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
-            {/* Brand */}
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 rounded-lg bg-[var(--qr)] flex items-center justify-center">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#0891b2' }}>
                   <span className="text-white text-[10px] font-bold">QR</span>
                 </div>
                 <span className="font-bold text-[var(--text)]">QRcodee.online</span>
@@ -446,12 +485,11 @@ export default function HomePage() {
               <p className="text-xs text-[var(--muted2)] leading-relaxed mb-3">
                 Dynamic QR codes with analytics, custom design, and flat-rate pricing. Part of the Boom Media SaaS suite.
               </p>
-              <a href="mailto:hello@qrcodee.online" className="text-xs text-[var(--qr)] hover:text-[var(--qr-hover)]">
+              <a href="mailto:hello@qrcodee.online" className="text-xs hover:underline" style={{ color: '#22d3ee' }}>
                 hello@qrcodee.online
               </a>
             </div>
 
-            {/* Product */}
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted2)] mb-3">Product</p>
               <ul className="space-y-2">
@@ -467,7 +505,6 @@ export default function HomePage() {
               </ul>
             </div>
 
-            {/* Use Cases */}
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted2)] mb-3">Use Cases</p>
               <ul className="space-y-2">
@@ -477,7 +514,6 @@ export default function HomePage() {
               </ul>
             </div>
 
-            {/* Account */}
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted2)] mb-3">Account</p>
               <ul className="space-y-2">
