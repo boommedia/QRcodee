@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -14,7 +15,10 @@ interface SidebarProps {
   }
 }
 
-const NAV = [
+type NavItem = { label: string; href: string; icon: ({ className }: { className?: string }) => React.ReactElement; badge?: string }
+type NavGroup = { section: string; items: NavItem[] }
+
+const NAV: NavGroup[] = [
   {
     section: 'MY QR CODES',
     items: [
