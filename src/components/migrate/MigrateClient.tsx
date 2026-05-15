@@ -70,9 +70,17 @@ export default function MigrateClient({ plan, folders }: { plan: string; folders
   const [results, setResults] = useState<Result[]>([])
 
   function handleFile(file: File) {
+    if (!file.name.endsWith('.csv') && file.type !== 'text/csv') {
+      alert('Please upload a CSV file. To export from QRCodeChimp: go to My QR Codes → select all → Export → CSV.')
+      return
+    }
     const reader = new FileReader()
     reader.onload = e => {
       const text = e.target?.result as string
+      if (text.startsWith('%PDF')) {
+        alert('This looks like a PDF, not a CSV. Please export your QR codes as a CSV file from your provider.')
+        return
+      }
       setRawText(text)
       const firstLine = text.split('\n')[0]
       const hdrs = firstLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''))
