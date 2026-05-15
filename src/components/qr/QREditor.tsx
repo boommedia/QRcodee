@@ -18,12 +18,7 @@ export default function QREditor({ qr }: { qr: QRCode }) {
     (qr.qr_data as Record<string, string>) || {}
   )
   const [design, setDesign] = useState<QRDesignConfig>({
-    foreground_color: '#000000',
-    background_color: '#ffffff',
-    dot_style: 'square',
-    corner_dot_style: 'square',
-    corner_square_style: 'square',
-    error_correction: 'M',
+    ...{ foreground_color: '#000000', background_color: '#ffffff', dot_style: 'square' as const, corner_dot_style: 'square' as const, corner_square_style: 'square' as const, error_correction: 'M' as const },
     ...qr.design_config,
   })
   const [isPaused, setIsPaused] = useState(qr.is_paused)
