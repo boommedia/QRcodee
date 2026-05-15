@@ -16,6 +16,8 @@ type DecodedImage = {
   name: string
   url: string
   status: 'ok' | 'failed'
+  resolving?: boolean
+  resolvedUrl?: string
 }
 
 const KNOWN_SOURCES = [
@@ -136,14 +138,31 @@ export default function MigrateClient({ plan, folders }: { plan: string; folders
       const baseName = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ')
       try {
         const { url, thumb } = await decodeQRFromFile(file)
-        items.push({ file: file.name, thumb, decodedUrl: url, name: baseName, url, status: 'ok' })
+        items.push({ file: file.name, thumb, decodedUrl: url, name: baseName, url, status: 'ok', resolving: true })
       } catch {
-        items.push({ file: file.name, thumb: '', decodedUrl: '', name: baseName, url: '', status: 'failed' })
+        items.push({ file: file.name, thumb: '', decodedUrl: '', name: baseName, url: '', status: 'failed', resolving: false })
       }
     }
     setDecoded(items)
     setDecoding(false)
     setImgStep('review')
+
+    // Follow redirects on each decoded URL concurrently to get the real final destination
+    await Promise.all(items.map(async (item, i) => {
+      if (item.status === 'failed') return
+      try {
+        const res = await fetch('/api/resolve-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: item.decodedUrl }),
+        })
+        const data = await res.json()
+        const resolved: string = data.resolved || item.decodedUrl
+        setDecoded(prev => prev.map((x, j) => j === i ? { ...x, url: resolved, resolvedUrl: resolved, resolving: false } : x))
+      } catch {
+        setDecoded(prev => prev.map((x, j) => j === i ? { ...x, resolving: false } : x))
+      }
+    }))
   }
 
   function applyMap() {
@@ -319,18 +338,17 @@ export default function MigrateClient({ plan, folders }: { plan: string; folders
                 )}
 
                 <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
-                  <div className="grid grid-cols-[40px_1fr_1fr_1fr] gap-0 border-b border-[var(--border)] bg-[var(--surface2)] px-4 py-2.5">
+                  <div className="grid grid-cols-[40px_1fr_1fr] gap-0 border-b border-[var(--border)] bg-[var(--surface2)] px-4 py-2.5">
                     <span />
                     <span className="text-[10px] font-semibold text-[var(--muted2)] uppercase tracking-wide">Name</span>
-                    <span className="text-[10px] font-semibold text-[var(--muted2)] uppercase tracking-wide">Decoded URL</span>
-                    <span className="text-[10px] font-semibold text-[var(--muted2)] uppercase tracking-wide">Destination URL</span>
+                    <span className="text-[10px] font-semibold text-[var(--muted2)] uppercase tracking-wide">Destination URL <span className="normal-case font-normal">(editable)</span></span>
                   </div>
                   <div className="divide-y divide-[var(--border)] max-h-96 overflow-y-auto">
                     {decoded.map((d, i) => (
-                      <div key={i} className={`grid grid-cols-[40px_1fr_1fr_1fr] gap-2 px-4 py-3 items-center ${d.status === 'failed' ? 'opacity-50' : ''}`}>
+                      <div key={i} className={`grid grid-cols-[40px_1fr_1fr] gap-2 px-4 py-3 items-start ${d.status === 'failed' ? 'opacity-50' : ''}`}>
                         {d.thumb
-                          ? <img src={d.thumb} alt="" className="w-8 h-8 rounded object-contain bg-white" />
-                          : <div className="w-8 h-8 rounded bg-[var(--surface2)] flex items-center justify-center text-xs">?</div>
+                          ? <img src={d.thumb} alt="" className="w-8 h-8 rounded object-contain bg-white mt-0.5" />
+                          : <div className="w-8 h-8 rounded bg-[var(--surface2)] flex items-center justify-center text-xs mt-0.5">?</div>
                         }
                         <input
                           value={d.name}
@@ -338,24 +356,33 @@ export default function MigrateClient({ plan, folders }: { plan: string; folders
                           className="rounded-lg border border-[var(--border)] bg-[var(--surface2)] px-2 py-1.5 text-xs text-[var(--text)] focus:outline-none focus:border-[var(--qr)] w-full"
                           placeholder="QR code name"
                         />
-                        {d.status === 'failed'
-                          ? <span className="text-xs text-red-400">Failed to decode</span>
-                          : <span className="text-xs text-[var(--muted2)] truncate font-mono">{d.decodedUrl.slice(0, 40)}{d.decodedUrl.length > 40 ? '…' : ''}</span>
-                        }
-                        <input
-                          value={d.url}
-                          onChange={e => setDecoded(prev => prev.map((x, j) => j === i ? { ...x, url: e.target.value } : x))}
-                          className="rounded-lg border border-[var(--border)] bg-[var(--surface2)] px-2 py-1.5 text-xs text-[var(--text)] focus:outline-none focus:border-[var(--qr)] w-full"
-                          placeholder="https://your-destination.com"
-                          disabled={d.status === 'failed'}
-                        />
+                        {d.status === 'failed' ? (
+                          <span className="text-xs text-red-400">Failed to decode</span>
+                        ) : d.resolving ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full border border-[var(--qr)] border-t-transparent animate-spin shrink-0" />
+                            <span className="text-[10px] text-[var(--muted2)]">Resolving redirect…</span>
+                          </div>
+                        ) : (
+                          <div className="space-y-1">
+                            {d.resolvedUrl && d.resolvedUrl !== d.decodedUrl && (
+                              <p className="text-[9px] text-[var(--muted2)] font-mono truncate line-through opacity-50">{d.decodedUrl.slice(0, 50)}</p>
+                            )}
+                            <input
+                              value={d.url}
+                              onChange={e => setDecoded(prev => prev.map((x, j) => j === i ? { ...x, url: e.target.value } : x))}
+                              className="rounded-lg border border-[var(--qr)]/40 bg-[var(--surface2)] px-2 py-1.5 text-xs text-[var(--text)] focus:outline-none focus:border-[var(--qr)] w-full"
+                              placeholder="https://your-destination.com"
+                            />
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <p className="text-xs text-[var(--muted2)]">
-                  💡 The decoded URL may be your old provider&apos;s short link — update the <strong className="text-[var(--text)]">Destination URL</strong> column to your actual page URL before importing.
+                  ✅ We automatically follow any redirects to find the real destination URL. Edit any field before importing.
                 </p>
 
                 <div className="flex gap-3">
