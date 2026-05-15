@@ -63,31 +63,19 @@ export default function QRCreator() {
         ? { type: design.dot_style as never, gradient: { type: (design.dot_gradient_type || 'linear') as never, rotation: 0, colorStops: [{ offset: 0, color: design.foreground_color }, { offset: 1, color: design.dot_gradient_end_color }] } }
         : { type: design.dot_style as never, color: design.foreground_color }
 
-      if (!qrRef.current) {
-        qrRef.current = new QRCodeStyling({
-          width: 280, height: 280, type: 'svg', data: payload,
-          image: design.logo_url || undefined,
-          dotsOptions: dotsOpts,
-          cornersSquareOptions: { color: cornerColor, type: design.corner_square_style as never },
-          cornersDotOptions: { color: cornerColor, type: design.corner_dot_style as never },
-          backgroundOptions: { color: design.background_color },
-          imageOptions: { crossOrigin: 'anonymous', margin: 4, imageSize: (design.logo_size || 30) / 100, hideBackgroundDots: design.logo_hide_background !== false },
-          qrOptions: { errorCorrectionLevel: design.error_correction },
-        })
-        previewRef.current.innerHTML = ''
-        qrRef.current.append(previewRef.current)
-      } else {
-        qrRef.current.update({
-          data: payload,
-          image: design.logo_url || undefined,
-          dotsOptions: dotsOpts,
-          cornersSquareOptions: { color: cornerColor, type: design.corner_square_style as never },
-          cornersDotOptions: { color: cornerColor, type: design.corner_dot_style as never },
-          backgroundOptions: { color: design.background_color },
-          imageOptions: { crossOrigin: 'anonymous', margin: 4, imageSize: (design.logo_size || 30) / 100, hideBackgroundDots: design.logo_hide_background !== false },
-          qrOptions: { errorCorrectionLevel: design.error_correction },
-        })
-      }
+      // Always recreate — .update() doesn't clear gradient or reapply imageSize
+      qrRef.current = new QRCodeStyling({
+        width: 280, height: 280, type: 'svg', data: payload,
+        image: design.logo_url || undefined,
+        dotsOptions: dotsOpts,
+        cornersSquareOptions: { color: cornerColor, type: design.corner_square_style as never },
+        cornersDotOptions: { color: cornerColor, type: design.corner_dot_style as never },
+        backgroundOptions: { color: design.background_color },
+        imageOptions: { crossOrigin: 'anonymous', margin: 4, imageSize: (design.logo_size || 30) / 100, hideBackgroundDots: design.logo_hide_background !== false },
+        qrOptions: { errorCorrectionLevel: design.error_correction },
+      })
+      previewRef.current.innerHTML = ''
+      qrRef.current.append(previewRef.current)
     }
 
     initQR()
