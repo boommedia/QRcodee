@@ -188,11 +188,11 @@ export default function QRListClient({
             return (
               <div
                 key={qr.id}
-                className={`group relative rounded-2xl border bg-[var(--surface)] transition-all duration-200 overflow-hidden cursor-pointer ${isSelected ? 'border-[var(--qr)] ring-1 ring-[var(--qr)]/30' : 'border-[var(--border)] hover:border-[var(--qr)]'}`}
+                className={`group relative rounded-2xl border bg-[var(--surface)] transition-all duration-200 overflow-hidden cursor-pointer flex flex-col ${isSelected ? 'border-[var(--qr)] ring-1 ring-[var(--qr)]/30' : 'border-[var(--border)] hover:border-[var(--qr)]'}`}
                 onClick={() => toggleSelect(qr.id)}
               >
-                <div className="h-0.5 w-full" style={{ background: accent }} />
-                <div className="p-4">
+                <div className="h-0.5 w-full shrink-0" style={{ background: accent }} />
+                <div className="p-4 flex-1">
                   <div className="flex items-start justify-between mb-3">
                     <span
                       className="text-[9px] font-bold rounded-full px-2 py-0.5 uppercase tracking-widest"
