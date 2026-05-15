@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { PHASE1_TYPES, type Phase1QRType, type QRTypeConfig, encodeQRPayload } from '@/lib/qr/types'
 import type { QRDesignConfig } from '@/types'
+import QRDesignPanel from './QRDesignPanel'
 
 // ── Default design ────────────────────────────────────────────
 const DEFAULT_DESIGN: QRDesignConfig = {
@@ -57,26 +58,20 @@ export default function QRCreator() {
       const QRCodeStyling = (await import('qr-code-styling')).default
       if (cancelled || !previewRef.current) return
 
+      const cornerColor = design.corner_color || design.foreground_color
+      const dotsOpts = design.dot_gradient_enabled && design.dot_gradient_end_color
+        ? { type: design.dot_style as never, gradient: { type: (design.dot_gradient_type || 'linear') as never, rotation: 0, colorStops: [{ offset: 0, color: design.foreground_color }, { offset: 1, color: design.dot_gradient_end_color }] } }
+        : { type: design.dot_style as never, color: design.foreground_color }
+
       if (!qrRef.current) {
         qrRef.current = new QRCodeStyling({
-          width: 220,
-          height: 220,
-          type: 'svg',
-          data: payload,
-          dotsOptions: {
-            color: design.foreground_color,
-            type: design.dot_style as never,
-          },
-          cornersSquareOptions: {
-            color: design.corner_color || design.foreground_color,
-            type: design.corner_square_style as never,
-          },
-          cornersDotOptions: {
-            color: design.corner_color || design.foreground_color,
-            type: design.corner_dot_style as never,
-          },
+          width: 280, height: 280, type: 'svg', data: payload,
+          image: design.logo_url || undefined,
+          dotsOptions: dotsOpts,
+          cornersSquareOptions: { color: cornerColor, type: design.corner_square_style as never },
+          cornersDotOptions: { color: cornerColor, type: design.corner_dot_style as never },
           backgroundOptions: { color: design.background_color },
-          imageOptions: { crossOrigin: 'anonymous', margin: 4 },
+          imageOptions: { crossOrigin: 'anonymous', margin: 4, imageSize: (design.logo_size || 30) / 100, hideBackgroundDots: design.logo_hide_background !== false },
           qrOptions: { errorCorrectionLevel: design.error_correction },
         })
         previewRef.current.innerHTML = ''
@@ -84,10 +79,12 @@ export default function QRCreator() {
       } else {
         qrRef.current.update({
           data: payload,
-          dotsOptions: { color: design.foreground_color, type: design.dot_style as never },
-          cornersSquareOptions: { color: design.corner_color || design.foreground_color, type: design.corner_square_style as never },
-          cornersDotOptions: { color: design.corner_color || design.foreground_color, type: design.corner_dot_style as never },
+          image: design.logo_url || undefined,
+          dotsOptions: dotsOpts,
+          cornersSquareOptions: { color: cornerColor, type: design.corner_square_style as never },
+          cornersDotOptions: { color: cornerColor, type: design.corner_dot_style as never },
           backgroundOptions: { color: design.background_color },
+          imageOptions: { crossOrigin: 'anonymous', margin: 4, imageSize: (design.logo_size || 30) / 100, hideBackgroundDots: design.logo_hide_background !== false },
           qrOptions: { errorCorrectionLevel: design.error_correction },
         })
       }
@@ -317,125 +314,7 @@ export default function QRCreator() {
               {step === 'design' && (
                 <div className="rounded-2xl border border-[var(--qr)] bg-[var(--surface)] p-6">
                   <h2 className="text-sm font-bold text-[var(--text)] mb-5">Design Your QR Code</h2>
-
-                  <div className="space-y-5">
-                    {/* Colors */}
-                    <div>
-                      <div className="grid grid-cols-2 gap-4 mb-3">
-                        <ColorField
-                          label="QR Color"
-                          value={design.foreground_color}
-                          onChange={v => setDesign(p => ({ ...p, foreground_color: v }))}
-                        />
-                        <ColorField
-                          label="Background"
-                          value={design.background_color}
-                          onChange={v => setDesign(p => ({ ...p, background_color: v }))}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--surface2)] px-4 py-2.5 mb-2">
-                        <span className="text-xs text-[var(--muted2)]">Corner accent color</span>
-                        <button
-                          onClick={() => setDesign(p => ({ ...p, corner_color: p.corner_color ? undefined : p.foreground_color }))}
-                          className={`w-9 h-5 rounded-full transition-all relative ${design.corner_color ? 'bg-[var(--qr)]' : 'bg-[var(--border)]'}`}
-                        >
-                          <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${design.corner_color ? 'left-4' : 'left-0.5'}`} />
-                        </button>
-                      </div>
-                      {design.corner_color && (
-                        <ColorField
-                          label="Corner Color"
-                          value={design.corner_color}
-                          onChange={v => setDesign(p => ({ ...p, corner_color: v }))}
-                        />
-                      )}
-                    </div>
-
-                    {/* Dot style */}
-                    <div>
-                      <label className="block text-xs font-semibold text-[var(--muted2)] uppercase tracking-wide mb-2">Dot Style</label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {(['square', 'rounded', 'dots', 'classy', 'classy-rounded', 'extra-rounded'] as const).map(style => (
-                          <button
-                            key={style}
-                            onClick={() => setDesign(p => ({ ...p, dot_style: style }))}
-                            className={`rounded-lg border px-2 py-1.5 text-xs capitalize transition-all ${
-                              design.dot_style === style
-                                ? 'border-[var(--qr)] bg-[var(--qr)]/10 text-[var(--qr)]'
-                                : 'border-[var(--border)] text-[var(--muted2)] hover:border-[var(--qr)]/40'
-                            }`}
-                          >
-                            {style.replace('-', ' ')}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Corner styles */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-[var(--muted2)] uppercase tracking-wide mb-2">Corner Square</label>
-                        <div className="flex gap-2">
-                          {(['square', 'dot', 'extra-rounded'] as const).map(style => (
-                            <button
-                              key={style}
-                              onClick={() => setDesign(p => ({ ...p, corner_square_style: style }))}
-                              className={`flex-1 rounded-lg border px-2 py-1.5 text-xs capitalize transition-all ${
-                                design.corner_square_style === style
-                                  ? 'border-[var(--qr)] bg-[var(--qr)]/10 text-[var(--qr)]'
-                                  : 'border-[var(--border)] text-[var(--muted2)] hover:border-[var(--qr)]/40'
-                              }`}
-                            >
-                              {style.replace('-', ' ')}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-[var(--muted2)] uppercase tracking-wide mb-2">Corner Dot</label>
-                        <div className="flex gap-2">
-                          {(['square', 'dot'] as const).map(style => (
-                            <button
-                              key={style}
-                              onClick={() => setDesign(p => ({ ...p, corner_dot_style: style }))}
-                              className={`flex-1 rounded-lg border px-2 py-1.5 text-xs capitalize transition-all ${
-                                design.corner_dot_style === style
-                                  ? 'border-[var(--qr)] bg-[var(--qr)]/10 text-[var(--qr)]'
-                                  : 'border-[var(--border)] text-[var(--muted2)] hover:border-[var(--qr)]/40'
-                              }`}
-                            >
-                              {style}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Error correction */}
-                    <div>
-                      <label className="block text-xs font-semibold text-[var(--muted2)] uppercase tracking-wide mb-2">Error Correction</label>
-                      <div className="flex gap-2">
-                        {([
-                          { v: 'L', label: 'Low (7%)', tip: 'Smallest' },
-                          { v: 'M', label: 'Med (15%)', tip: 'Default' },
-                          { v: 'Q', label: 'High (25%)', tip: 'Logo safe' },
-                          { v: 'H', label: 'Max (30%)', tip: 'Best' },
-                        ] as const).map(({ v, label }) => (
-                          <button
-                            key={v}
-                            onClick={() => setDesign(p => ({ ...p, error_correction: v }))}
-                            className={`flex-1 rounded-lg border py-1.5 text-[10px] transition-all ${
-                              design.error_correction === v
-                                ? 'border-[var(--qr)] bg-[var(--qr)]/10 text-[var(--qr)]'
-                                : 'border-[var(--border)] text-[var(--muted2)] hover:border-[var(--qr)]/40'
-                            }`}
-                          >
-                            {label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                  <QRDesignPanel design={design} onChange={setDesign} />
                 </div>
               )}
             </div>
@@ -448,7 +327,7 @@ export default function QRCreator() {
 
                   {/* QR preview */}
                   <div className="flex items-center justify-center rounded-xl p-4 mb-4" style={{ background: design.background_color }}>
-                    <div ref={previewRef} className="w-[220px] h-[220px]" />
+                    <div ref={previewRef} className="w-[280px] h-[280px]" />
                   </div>
 
                   {/* Scan link */}
@@ -528,31 +407,3 @@ export default function QRCreator() {
   )
 }
 
-function ColorField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <div>
-      <label className="block text-xs font-semibold text-[var(--muted2)] uppercase tracking-wide mb-2">{label}</label>
-      <div className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface2)] px-3 py-2">
-        <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-[var(--border)] shrink-0">
-          <input
-            type="color"
-            value={value}
-            onChange={e => onChange(e.target.value)}
-            className="absolute inset-0 w-full h-full cursor-pointer opacity-0"
-          />
-          <div className="w-full h-full rounded-lg" style={{ background: value }} />
-        </div>
-        <input
-          type="text"
-          value={value.toUpperCase()}
-          onChange={e => {
-            const v = e.target.value
-            if (/^#[0-9A-Fa-f]{0,6}$/.test(v)) onChange(v)
-          }}
-          className="flex-1 bg-transparent text-xs text-[var(--text)] font-mono outline-none"
-          maxLength={7}
-        />
-      </div>
-    </div>
-  )
-}

@@ -33,6 +33,9 @@ export interface QRDesignConfig {
   corner_dot_style: 'square' | 'dot'
   corner_square_style: 'square' | 'dot' | 'extra-rounded'
   corner_color?: string
+  dot_gradient_enabled?: boolean
+  dot_gradient_end_color?: string
+  dot_gradient_type?: 'linear' | 'radial'
   logo_url?: string
   logo_size?: number
   logo_hide_background?: boolean
