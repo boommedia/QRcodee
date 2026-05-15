@@ -145,7 +145,7 @@ export default function QRDesignPanel({
             <div className="flex-1 min-w-0">
               <div className="mb-2">
                 <label className="text-[10px] text-[var(--muted2)]">Size: {design.logo_size || 30}%</label>
-                <input type="range" min={15} max={50} value={design.logo_size || 30}
+                <input type="range" min={10} max={80} value={design.logo_size || 30}
                   onChange={e => set({ logo_size: Number(e.target.value) })}
                   className="w-full accent-[var(--qr)]" />
               </div>

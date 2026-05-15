@@ -71,7 +71,7 @@ export default function QRCreator() {
         cornersSquareOptions: { color: cornerColor, type: design.corner_square_style as never },
         cornersDotOptions: { color: cornerColor, type: design.corner_dot_style as never },
         backgroundOptions: { color: design.background_color },
-        imageOptions: { crossOrigin: 'anonymous', margin: 4, imageSize: (design.logo_size || 30) / 100, hideBackgroundDots: design.logo_hide_background !== false },
+        imageOptions: { crossOrigin: 'anonymous', margin: 0, imageSize: Math.min((design.logo_size || 30) / 60, 0.95), hideBackgroundDots: design.logo_hide_background !== false },
         qrOptions: { errorCorrectionLevel: design.error_correction },
       })
       previewRef.current.innerHTML = ''
