@@ -233,8 +233,8 @@ export default function QREditor({ qr }: { qr: QRCode }) {
           <div className="w-full lg:w-72 shrink-0">
             <div className="sticky top-6 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6">
               <h3 className="text-xs font-semibold text-[var(--muted2)] uppercase tracking-wide mb-4">Preview</h3>
-              <div className="flex items-center justify-center rounded-xl p-4 mb-4" style={{ background: design.background_color }}>
-                <div ref={previewRef} className="w-[280px] h-[280px]" />
+              <div className="rounded-xl p-3 mb-4 overflow-hidden" style={{ background: design.background_color }}>
+                <div ref={previewRef} className="w-full [&>svg]:w-full [&>svg]:h-auto [&>canvas]:w-full [&>canvas]:h-auto" />
               </div>
 
               {error && <p className="text-xs text-red-400 mb-3 text-center">{error}</p>}

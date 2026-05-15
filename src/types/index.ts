@@ -36,6 +36,8 @@ export interface QRDesignConfig {
   dot_gradient_enabled?: boolean
   dot_gradient_end_color?: string
   dot_gradient_type?: 'linear' | 'radial'
+  qr_size?: number
+  qr_margin?: number
   logo_url?: string
   logo_size?: number
   logo_hide_background?: boolean
