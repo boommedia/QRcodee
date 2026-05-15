@@ -229,9 +229,10 @@ export default function QRListClient({
                     )}
                   </div>
                 </div>
-                <div className="border-t border-[var(--border)] bg-[var(--surface2)] px-4 py-2 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="border-t border-[var(--border)] bg-[var(--surface2)] px-4 py-2 flex items-center justify-between">
                   <Link href={`/dashboard/qr/${qr.id}`} onClick={e => e.stopPropagation()} className="text-[10px] text-[var(--qr)] hover:text-[var(--qr-hover)] font-medium">Edit</Link>
                   <Link href={`/dashboard/analytics?qr=${qr.id}`} onClick={e => e.stopPropagation()} className="text-[10px] text-[var(--muted2)] hover:text-[var(--text)]">Analytics</Link>
+                  <Link href={`/dashboard/qr/${qr.id}/download`} onClick={e => e.stopPropagation()} className="text-[10px] text-[var(--muted2)] hover:text-[var(--text)]">Download</Link>
                 </div>
               </div>
             )
