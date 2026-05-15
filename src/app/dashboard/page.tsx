@@ -160,7 +160,7 @@ export default async function DashboardPage() {
                 </Link>
               ))}
               <Link
-                href="/dashboard/folders/new"
+                href="/dashboard/folders"
                 className="flex items-center gap-1 rounded-xl border border-dashed border-[var(--border2)] hover:border-[var(--qr)] px-3 py-2 text-xs text-[var(--muted2)] hover:text-[var(--qr)] transition-colors"
               >
                 + New folder
