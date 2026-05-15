@@ -8,11 +8,11 @@ import QRDesignPanel from './QRDesignPanel'
 
 // ── Default design ────────────────────────────────────────────
 const DEFAULT_DESIGN: QRDesignConfig = {
-  foreground_color: '#0891b2',
+  foreground_color: '#000000',
   background_color: '#ffffff',
-  dot_style: 'rounded',
-  corner_dot_style: 'dot',
-  corner_square_style: 'extra-rounded',
+  dot_style: 'square',
+  corner_dot_style: 'square',
+  corner_square_style: 'square',
   error_correction: 'M',
 }
 
