@@ -176,7 +176,7 @@ export default function MigrateClient({ plan, folders }: { plan: string; folders
       const res = await fetch('/api/qr/bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({ items, migration: true }),
       })
       const data = await res.json()
       if (data.results) allResults.push(...data.results)

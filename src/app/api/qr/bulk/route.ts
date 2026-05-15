@@ -25,18 +25,19 @@ export async function POST(request: NextRequest) {
   const plan = (sub?.plan || 'free') as PlanTier
   const limits = PLAN_LIMITS[plan]
 
-  if (limits.bulk_batch === 0) {
-    return NextResponse.json({ error: 'Bulk creation requires Pro or Agency plan' }, { status: 403 })
-  }
-
-  const { items }: { items: BulkItem[] } = await request.json()
+  const { items, migration }: { items: BulkItem[]; migration?: boolean } = await request.json()
 
   if (!Array.isArray(items) || items.length === 0) {
     return NextResponse.json({ error: 'No items provided' }, { status: 400 })
   }
 
-  const batchLimit = limits.bulk_batch === Infinity ? 10000 : limits.bulk_batch
-  if (items.length > batchLimit) {
+  // Bulk creation feature requires Pro+, but migration is allowed on any plan (subject to QR count limit)
+  if (!migration && limits.bulk_batch === 0) {
+    return NextResponse.json({ error: 'Bulk creation requires Pro or Agency plan' }, { status: 403 })
+  }
+
+  const batchLimit = limits.bulk_batch === Infinity ? 10000 : (migration ? 500 : limits.bulk_batch)
+  if (!migration && items.length > batchLimit) {
     return NextResponse.json({ error: `Batch limit is ${batchLimit} for your plan` }, { status: 400 })
   }
 
