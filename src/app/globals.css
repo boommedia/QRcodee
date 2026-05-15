@@ -61,6 +61,8 @@
   --starter:  #8b5cf6;
   --pro:      #0891b2;
   --agency:   #f59e0b;
+  /* Status */
+  --success:  #4ade80;
 }
 
 * {
