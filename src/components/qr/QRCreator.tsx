@@ -68,11 +68,11 @@ export default function QRCreator() {
             type: design.dot_style as never,
           },
           cornersSquareOptions: {
-            color: design.foreground_color,
+            color: design.corner_color || design.foreground_color,
             type: design.corner_square_style as never,
           },
           cornersDotOptions: {
-            color: design.foreground_color,
+            color: design.corner_color || design.foreground_color,
             type: design.corner_dot_style as never,
           },
           backgroundOptions: { color: design.background_color },
@@ -85,8 +85,8 @@ export default function QRCreator() {
         qrRef.current.update({
           data: payload,
           dotsOptions: { color: design.foreground_color, type: design.dot_style as never },
-          cornersSquareOptions: { color: design.foreground_color, type: design.corner_square_style as never },
-          cornersDotOptions: { color: design.foreground_color, type: design.corner_dot_style as never },
+          cornersSquareOptions: { color: design.corner_color || design.foreground_color, type: design.corner_square_style as never },
+          cornersDotOptions: { color: design.corner_color || design.foreground_color, type: design.corner_dot_style as never },
           backgroundOptions: { color: design.background_color },
           qrOptions: { errorCorrectionLevel: design.error_correction },
         })
@@ -320,17 +320,35 @@ export default function QRCreator() {
 
                   <div className="space-y-5">
                     {/* Colors */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <ColorField
-                        label="QR Color"
-                        value={design.foreground_color}
-                        onChange={v => setDesign(p => ({ ...p, foreground_color: v }))}
-                      />
-                      <ColorField
-                        label="Background"
-                        value={design.background_color}
-                        onChange={v => setDesign(p => ({ ...p, background_color: v }))}
-                      />
+                    <div>
+                      <div className="grid grid-cols-2 gap-4 mb-3">
+                        <ColorField
+                          label="QR Color"
+                          value={design.foreground_color}
+                          onChange={v => setDesign(p => ({ ...p, foreground_color: v }))}
+                        />
+                        <ColorField
+                          label="Background"
+                          value={design.background_color}
+                          onChange={v => setDesign(p => ({ ...p, background_color: v }))}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--surface2)] px-4 py-2.5 mb-2">
+                        <span className="text-xs text-[var(--muted2)]">Corner accent color</span>
+                        <button
+                          onClick={() => setDesign(p => ({ ...p, corner_color: p.corner_color ? undefined : p.foreground_color }))}
+                          className={`w-9 h-5 rounded-full transition-all relative ${design.corner_color ? 'bg-[var(--qr)]' : 'bg-[var(--border)]'}`}
+                        >
+                          <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${design.corner_color ? 'left-4' : 'left-0.5'}`} />
+                        </button>
+                      </div>
+                      {design.corner_color && (
+                        <ColorField
+                          label="Corner Color"
+                          value={design.corner_color}
+                          onChange={v => setDesign(p => ({ ...p, corner_color: v }))}
+                        />
+                      )}
                     </div>
 
                     {/* Dot style */}

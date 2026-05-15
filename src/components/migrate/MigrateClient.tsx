@@ -84,6 +84,85 @@ async function decodeQRFromFile(file: File): Promise<{ url: string; thumb: strin
   })
 }
 
+function MigrationGuide() {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] mb-6 overflow-hidden">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-lg">📋</span>
+          <div>
+            <p className="text-sm font-semibold text-[var(--text)]">How to migrate from QRCodeChimp</p>
+            <p className="text-[10px] text-[var(--muted2)]">Step-by-step process to move your active QR codes to QRcodee</p>
+          </div>
+        </div>
+        <span className="text-[var(--muted2)] text-sm">{open ? '▲' : '▼'}</span>
+      </button>
+      {open && (
+        <div className="border-t border-[var(--border)] px-5 py-5 space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[
+              {
+                step: '1',
+                title: 'Download your QR images',
+                detail: 'In QRCodeChimp, go to My QR Codes → select each code → Download as PNG or SVG. Download all the codes you want to migrate.',
+                color: 'var(--qr)',
+              },
+              {
+                step: '2',
+                title: 'Upload images here → Decode QR mode',
+                detail: 'Switch to "Decode QR Images" tab above. Drop all your downloaded QR images. We automatically decode each one and follow its redirect to find the real destination URL.',
+                color: 'var(--qr)',
+              },
+              {
+                step: '3',
+                title: 'Review & confirm destinations',
+                detail: 'Check that the destination URLs look correct. The old QRCodeChimp short URL will be shown struck-through — the resolved real destination is pre-filled for you. Edit any names or URLs as needed.',
+                color: 'var(--qr)',
+              },
+              {
+                step: '4',
+                title: 'Click Import',
+                detail: 'QRcodee creates new dynamic QR codes for each one. Future scans go directly through qrcodee.online — no dependency on QRCodeChimp.',
+                color: 'var(--qr)',
+              },
+              {
+                step: '5',
+                title: 'Download new QR images from QRcodee',
+                detail: 'Go to your QR Codes list, open each migrated code → Edit → Download SVG. Or use Bulk actions to download all at once.',
+                color: '#f59e0b',
+              },
+              {
+                step: '6',
+                title: 'Replace everywhere the old codes appear',
+                detail: 'Update: your website, Google Business Profile, menus (print new ones), social media, flyers, packaging. Once replaced, the new codes go through QRcodee where you control the destination.',
+                color: '#f59e0b',
+              },
+            ].map(({ step, title, detail, color }) => (
+              <div key={step} className="flex gap-3">
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black text-white shrink-0 mt-0.5" style={{ background: color }}>
+                  {step}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-[var(--text)] mb-1">{title}</p>
+                  <p className="text-xs text-[var(--muted2)] leading-relaxed">{detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-xl border border-yellow-700/30 bg-yellow-900/10 p-4">
+            <p className="text-xs font-semibold text-yellow-400 mb-1">⚠️ Important: old printed codes</p>
+            <p className="text-xs text-[var(--muted2)]">QRCodeChimp codes encode a QRCodeChimp URL — once you close your account there, any code you haven&apos;t physically replaced will stop working. Always replace the image before closing the account.</p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function MigrateClient({ plan, folders }: { plan: string; folders: Folder[] }) {
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
@@ -247,6 +326,8 @@ export default function MigrateClient({ plan, folders }: { plan: string; folders
             </button>
           )}
         </div>
+
+        {(step === 'source' && imgStep === 'upload') && <MigrationGuide />}
 
         {/* Mode toggle — only show on first step */}
         {(step === 'source' && imgStep === 'upload') && (
